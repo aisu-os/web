@@ -1,12 +1,14 @@
+import { useState } from 'react'
 import { BootScreen } from '@/shell/boot'
+import { Desktop } from '@/shell/desktop'
 
 function App() {
+  const [bootCompleted, setBootCompleted] = useState(false)
+
   return (
     <>
-      <BootScreen />
-      <div>
-        <h1 className="text-3xl font-bold underline">Hi</h1>
-      </div>
+      <Desktop isReady={bootCompleted} />
+      <BootScreen onComplete={() => setBootCompleted(true)} />
     </>
   )
 }
