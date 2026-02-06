@@ -27,7 +27,7 @@ const Desktop = ({ isReady }: DesktopProps) => {
   const setAppName = useMenuBarStore((s) => s.setAppName)
 
   useEffect(() => {
-    const focusedWindow = windows.find((w) => w.isFocused && !w.isMinimized)
+    const focusedWindow = windows.find((w) => w.isFocused && !w.isMinimized && !w.isHidden)
 
     if (focusedWindow) {
       const entry = appRegistry[focusedWindow.appId]

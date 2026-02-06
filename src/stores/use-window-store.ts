@@ -10,6 +10,8 @@ interface WindowStore {
   closeWindow: (id: string) => void
   focusWindow: (id: string) => void
   minimizeWindow: (id: string) => void
+  hideProcess: (processId: string) => void
+  unhideProcess: (processId: string) => void
   maximizeWindow: (id: string) => void
   restoreWindow: (id: string) => void
   moveWindow: (id: string, position: WindowPosition) => void
@@ -40,6 +42,7 @@ export const useWindowStore = create<WindowStore>((set, get) => ({
     const newWindow: WindowState = {
       id,
       appId,
+      processId: crypto.randomUUID(),
       title: config.title,
       position: {
         x: 120 + offset,
@@ -51,6 +54,7 @@ export const useWindowStore = create<WindowStore>((set, get) => ({
       },
       isMinimized: false,
       isMaximized: false,
+      isHidden: false,
       isFocused: true,
       zIndex: get().nextZIndex,
     }
@@ -99,6 +103,7 @@ export const useWindowStore = create<WindowStore>((set, get) => ({
         isFocused: w.id === id,
         zIndex: w.id === id ? state.nextZIndex : w.zIndex,
         isMinimized: w.id === id ? false : w.isMinimized,
+        isHidden: w.id === id ? false : w.isHidden,
       })),
       nextZIndex: state.nextZIndex + 1,
     }))
@@ -109,7 +114,7 @@ export const useWindowStore = create<WindowStore>((set, get) => ({
       const remaining = state.windows.map((w) =>
         w.id === id ? { ...w, isMinimized: true, isFocused: false } : w
       )
-      const visible = remaining.filter((w) => !w.isMinimized)
+      const visible = remaining.filter((w) => !w.isMinimized && !w.isHidden)
       if (visible.length > 0) {
         const topWindow = visible.reduce((a, b) =>
           a.zIndex > b.zIndex ? a : b
@@ -122,6 +127,51 @@ export const useWindowStore = create<WindowStore>((set, get) => ({
         }
       }
       return { windows: remaining }
+    })
+  },
+
+  hideProcess: (processId) => {
+    set((state) => {
+      const updated = state.windows.map((w) =>
+        w.processId === processId
+          ? { ...w, isHidden: true, isFocused: false }
+          : w
+      )
+      const visible = updated.filter((w) => !w.isMinimized && !w.isHidden)
+      if (visible.length > 0) {
+        const topWindow = visible.reduce((a, b) =>
+          a.zIndex > b.zIndex ? a : b
+        )
+        return {
+          windows: updated.map((w) => ({
+            ...w,
+            isFocused: w.id === topWindow.id,
+          })),
+        }
+      }
+      return { windows: updated }
+    })
+  },
+
+  unhideProcess: (processId) => {
+    set((state) => {
+      const updated = state.windows.map((w) =>
+        w.processId === processId ? { ...w, isHidden: false } : w
+      )
+      const target = updated.find(
+        (w) => w.processId === processId && !w.isMinimized
+      )
+      if (target) {
+        return {
+          windows: updated.map((w) => ({
+            ...w,
+            isFocused: w.id === target.id,
+            zIndex: w.id === target.id ? state.nextZIndex : w.zIndex,
+          })),
+          nextZIndex: state.nextZIndex + 1,
+        }
+      }
+      return { windows: updated }
     })
   },
 

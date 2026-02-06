@@ -21,11 +21,13 @@ export interface WindowConfig {
 export interface WindowState {
   id: string
   appId: string
+  processId: string
   title: string
   position: WindowPosition
   size: WindowSize
   isMinimized: boolean
   isMaximized: boolean
+  isHidden: boolean
   isFocused: boolean
   zIndex: number
 }

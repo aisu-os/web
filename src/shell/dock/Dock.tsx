@@ -1,4 +1,4 @@
-import { motion, useMotionValue } from 'framer-motion'
+import { motion, useMotionValue, AnimatePresence } from 'framer-motion'
 import { cn } from '@/lib/cn'
 import {
   DOCK_ITEMS,
@@ -11,6 +11,7 @@ import {
 } from './dock.constants'
 import DockItem from './DockItem'
 import DockSeparator from './DockSeparator'
+import { useWindowStore } from '@/stores/use-window-store'
 
 interface DockProps {
   isVisible: boolean
@@ -18,6 +19,15 @@ interface DockProps {
 
 const Dock = ({ isVisible }: DockProps) => {
   const mouseX = useMotionValue(Infinity)
+  const windows = useWindowStore((s) => s.windows)
+
+  const hiddenProcesses = windows
+    .filter((w) => w.isHidden)
+    .map((w) => ({
+      processId: w.processId,
+      dockItem: DOCK_ITEMS.find((item) => item.id === w.appId),
+    }))
+    .filter((p) => p.dockItem != null)
 
   return (
     <motion.div
@@ -53,6 +63,21 @@ const Dock = ({ isVisible }: DockProps) => {
       ))}
 
       <DockSeparator />
+
+      <AnimatePresence>
+        {hiddenProcesses.map((proc) => (
+          <motion.div
+            key={`hidden-${proc.processId}`}
+            initial={{ width: 0, opacity: 0 }}
+            animate={{ width: 'auto', opacity: 1 }}
+            exit={{ width: 0, opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="overflow-hidden"
+          >
+            <DockItem item={proc.dockItem!} mouseX={mouseX} hiddenProcessId={proc.processId} />
+          </motion.div>
+        ))}
+      </AnimatePresence>
 
       <DockItem item={DOCK_SETTINGS_ITEM} mouseX={mouseX} />
     </motion.div>

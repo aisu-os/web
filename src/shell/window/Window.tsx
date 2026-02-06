@@ -16,18 +16,20 @@ const Window = ({ windowState }: WindowProps) => {
   const {
     id,
     appId,
+    processId,
     title,
     position,
     size,
     isMinimized,
     isMaximized,
+    isHidden,
     isFocused,
     zIndex,
   } = windowState
 
   const closeWindow = useWindowStore((s) => s.closeWindow)
   const focusWindow = useWindowStore((s) => s.focusWindow)
-  const minimizeWindow = useWindowStore((s) => s.minimizeWindow)
+  const hideProcess = useWindowStore((s) => s.hideProcess)
   const maximizeWindow = useWindowStore((s) => s.maximizeWindow)
   const restoreWindow = useWindowStore((s) => s.restoreWindow)
   const moveWindow = useWindowStore((s) => s.moveWindow)
@@ -183,27 +185,31 @@ const Window = ({ windowState }: WindowProps) => {
         zIndex,
       }
 
+  const isVisible = !isMinimized && !isHidden
+
   return (
     <AnimatePresence>
-      {!isMinimized && (
-        <motion.div
-          className={cn(
-            'absolute flex flex-col',
-            'rounded-xl overflow-hidden',
-            'shadow-2xl shadow-black/40',
-            isFocused
-              ? 'ring-1 ring-white/15'
-              : 'ring-1 ring-white/5',
-            isDragging && 'cursor-grabbing',
-          )}
-          style={computedStyle}
-          initial={{ opacity: 0, scale: 0.92 }}
-          animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0, scale: 0.92 }}
-          transition={{ duration: 0.15 }}
-          onMouseDown={handleFocus}
-          onContextMenu={(e) => e.stopPropagation()}
-        >
+      <motion.div
+        className={cn(
+          'absolute flex flex-col',
+          'rounded-xl overflow-hidden',
+          'shadow-2xl shadow-black/40',
+          isFocused
+            ? 'ring-1 ring-white/15'
+            : 'ring-1 ring-white/5',
+          isDragging && 'cursor-grabbing',
+        )}
+        style={{
+          ...computedStyle,
+          visibility: isVisible ? 'visible' : 'hidden',
+          pointerEvents: isVisible ? 'auto' : 'none',
+        }}
+        initial={{ opacity: 0, scale: 0.92 }}
+        animate={isVisible ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.92 }}
+        transition={{ duration: 0.15 }}
+        onMouseDown={handleFocus}
+        onContextMenu={(e) => e.stopPropagation()}
+      >
           {/* Titlebar */}
           <div
             className={cn(
@@ -232,7 +238,7 @@ const Window = ({ windowState }: WindowProps) => {
                 )}
               </button>
               <button
-                onClick={() => minimizeWindow(id)}
+                onClick={() => hideProcess(processId)}
                 className={cn(
                   'w-3 h-3 rounded-full transition-colors flex items-center justify-center',
                   isFocused ? 'bg-[#FFBD2E] hover:bg-[#FFAA00]' : 'bg-white/15',
@@ -313,8 +319,7 @@ const Window = ({ windowState }: WindowProps) => {
               <div className="absolute bottom-0 right-0 w-3 h-3 cursor-se-resize" onMouseDown={(e) => handleResizeStart(e, 'se')} />
             </>
           )}
-        </motion.div>
-      )}
+      </motion.div>
     </AnimatePresence>
   )
 }
