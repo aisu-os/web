@@ -55,3 +55,9 @@ export type {
   SystemEventType,
   SystemEvent,
 } from './events'
+
+export type {
+  DesktopItem,
+  ContextMenuItem,
+  MarqueeRect,
+} from './desktop'
