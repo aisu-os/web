@@ -32,7 +32,7 @@ const Dock = ({ isVisible }: DockProps) => {
         delay: isVisible ? DOCK_ENTRANCE_DELAY : 0,
       }}
       className={cn(
-        'fixed left-1/2 -translate-x-1/2',
+        'fixed left-1/2 -translate-x-1/2 z-[9999]',
         'flex items-end',
         'bg-black/20 backdrop-blur-xl backdrop-saturate-150',
         'rounded-2xl',
