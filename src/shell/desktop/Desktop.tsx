@@ -1,5 +1,6 @@
 import DesktopBackground from './DesktopBackground'
 import { TopBar } from '@/shell/taskbar'
+import { Dock } from '@/shell/dock'
 
 interface DesktopProps {
   isReady: boolean
@@ -13,7 +14,9 @@ const Desktop = ({ isReady }: DesktopProps) => {
       <div className="relative z-1 flex flex-col w-full h-full">
         <TopBar isVisible={isReady} />
 
-        {/* Kelajakda: desktop ikonlari, dock */}
+        <div className="flex-1" />
+
+        <Dock isVisible={isReady} />
       </div>
     </div>
   )
