@@ -1,4 +1,4 @@
-import { useRef, useCallback, useState } from 'react'
+import { useRef, useCallback, useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { cn } from '@/lib/cn'
 import { useDesktopStore } from '@/stores/use-desktop-store'
@@ -11,7 +11,7 @@ interface DesktopItemProps {
 }
 
 const DesktopItem = ({ item }: DesktopItemProps) => {
-  const isSelected = useDesktopStore((s) => s.selectedIds.has(item.id))
+  const isSelected = useDesktopStore((s) => s.selectedIds.includes(item.id))
   const selectItem = useDesktopStore((s) => s.selectItem)
   const updateItemPosition = useDesktopStore((s) => s.updateItemPosition)
   const openContextMenu = useDesktopStore((s) => s.openContextMenu)
@@ -21,10 +21,17 @@ const DesktopItem = ({ item }: DesktopItemProps) => {
   const [isDragging, setIsDragging] = useState(false)
   const dragStartRef = useRef({ x: 0, y: 0, itemX: 0, itemY: 0 })
   const hasDraggedRef = useRef(false)
+  const dragCleanupRef = useRef<(() => void) | null>(null)
+
+  useEffect(() => {
+    return () => { dragCleanupRef.current?.() }
+  }, [])
 
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
     if (e.button !== 0) return
     e.stopPropagation()
+
+    dragCleanupRef.current?.()
 
     const additive = e.metaKey || e.ctrlKey
     if (!isSelected) {
@@ -59,14 +66,20 @@ const DesktopItem = ({ item }: DesktopItemProps) => {
     }
 
     const handleMouseUp = () => {
+      cleanup()
       setIsDragging(false)
       hasDraggedRef.current = false
+    }
+
+    const cleanup = () => {
       document.removeEventListener('mousemove', handleMouseMove)
       document.removeEventListener('mouseup', handleMouseUp)
+      dragCleanupRef.current = null
     }
 
     document.addEventListener('mousemove', handleMouseMove)
     document.addEventListener('mouseup', handleMouseUp)
+    dragCleanupRef.current = cleanup
   }, [item.id, item.position, isSelected, selectItem, updateItemPosition])
 
   const handleContextMenu = useCallback((e: React.MouseEvent) => {

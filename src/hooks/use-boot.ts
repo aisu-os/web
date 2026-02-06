@@ -46,15 +46,20 @@ export function useBoot(options: UseBootOptions = {}): UseBootReturn {
   }, [duration])
 
   useEffect(() => {
+    let fadeTimeout: ReturnType<typeof setTimeout>
+
     const interval = setInterval(() => {
       setIsStatusFading(true)
-      setTimeout(() => {
+      fadeTimeout = setTimeout(() => {
         setStatusIndex((prev) => (prev + 1) % BOOT_STATUS_MESSAGES.length)
         setIsStatusFading(false)
       }, BOOT_TIMING.statusFadeDuration)
     }, BOOT_TIMING.statusRotationInterval)
 
-    return () => clearInterval(interval)
+    return () => {
+      clearInterval(interval)
+      clearTimeout(fadeTimeout)
+    }
   }, [])
 
   return {

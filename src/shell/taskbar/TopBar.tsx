@@ -10,6 +10,7 @@ const TopBar = ({ isVisible = true }: TopBarProps) => {
   return (
     <header
       className={cn(
+        'relative z-50',
         'flex w-full h-7 items-center justify-between shrink-0',
         'bg-black/20 backdrop-blur-xl backdrop-saturate-150',
         'select-none',

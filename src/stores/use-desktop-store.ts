@@ -12,7 +12,7 @@ interface DesktopStore {
   items: DesktopItem[]
   updateItemPosition: (id: string, position: { x: number; y: number }) => void
 
-  selectedIds: Set<string>
+  selectedIds: string[]
   selectItem: (id: string, additive?: boolean) => void
   selectItems: (ids: string[]) => void
   clearSelection: () => void
@@ -33,28 +33,27 @@ export const useDesktopStore = create<DesktopStore>((set) => ({
       ),
     })),
 
-  selectedIds: new Set<string>(),
+  selectedIds: [],
 
   selectItem: (id, additive = false) =>
     set((state) => {
       if (additive) {
-        const next = new Set(state.selectedIds)
-        if (next.has(id)) next.delete(id)
-        else next.add(id)
-        return { selectedIds: next }
+        return state.selectedIds.includes(id)
+          ? { selectedIds: state.selectedIds.filter((sid) => sid !== id) }
+          : { selectedIds: [...state.selectedIds, id] }
       }
-      return { selectedIds: new Set([id]) }
+      return { selectedIds: [id] }
     }),
 
   selectItems: (ids) =>
-    set({ selectedIds: new Set(ids) }),
+    set({ selectedIds: ids }),
 
   clearSelection: () =>
-    set({ selectedIds: new Set() }),
+    set({ selectedIds: [] }),
 
   selectAll: () =>
     set((state) => ({
-      selectedIds: new Set(state.items.map((i) => i.id)),
+      selectedIds: state.items.map((i) => i.id),
     })),
 
   contextMenu: { isOpen: false, position: { x: 0, y: 0 } },

@@ -1,4 +1,4 @@
-import { useRef, useEffect, useCallback } from 'react'
+import { useRef, useState, useEffect, useCallback, useLayoutEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { cn } from '@/lib/cn'
 import { useDesktopStore } from '@/stores/use-desktop-store'
@@ -12,6 +12,7 @@ const ContextMenu = () => {
   const closeContextMenu = useDesktopStore((s) => s.closeContextMenu)
   const selectAll = useDesktopStore((s) => s.selectAll)
   const menuRef = useRef<HTMLDivElement>(null)
+  const [adjustedPosition, setAdjustedPosition] = useState(contextMenu.position)
 
   useEffect(() => {
     if (!contextMenu.isOpen) return
@@ -39,18 +40,23 @@ const ContextMenu = () => {
     }
   }, [contextMenu.isOpen, closeContextMenu])
 
-  useEffect(() => {
-    if (!contextMenu.isOpen || !menuRef.current) return
+  useLayoutEffect(() => {
+    if (!contextMenu.isOpen || !menuRef.current) {
+      setAdjustedPosition(contextMenu.position)
+      return
+    }
 
     const rect = menuRef.current.getBoundingClientRect()
-    const el = menuRef.current
+    let { x, y } = contextMenu.position
 
     if (rect.right > window.innerWidth) {
-      el.style.left = `${contextMenu.position.x - rect.width}px`
+      x = contextMenu.position.x - rect.width
     }
     if (rect.bottom > window.innerHeight) {
-      el.style.top = `${contextMenu.position.y - rect.height}px`
+      y = contextMenu.position.y - rect.height
     }
+
+    setAdjustedPosition({ x, y })
   }, [contextMenu.isOpen, contextMenu.position])
 
   const handleAction = useCallback((action?: string) => {
@@ -84,8 +90,8 @@ const ContextMenu = () => {
             'select-none',
           )}
           style={{
-            left: contextMenu.position.x,
-            top: contextMenu.position.y,
+            left: adjustedPosition.x,
+            top: adjustedPosition.y,
           }}
           initial={{ opacity: 0, scale: 0.92 }}
           animate={{ opacity: 1, scale: 1 }}
