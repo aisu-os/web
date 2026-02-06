@@ -1,11 +1,10 @@
-import { useRef } from 'react'
+import { useRef, createRef, useMemo } from 'react'
 import { cn } from '@/lib/cn'
 import { useClickOutside } from '@/hooks/use-click-outside'
 import { useMenuBarStore } from '@/stores/use-menubar-store'
 import {
   SYSTEM_BRAND_MENU,
   DEFAULT_SYSTEM_MENUS,
-  DEFAULT_APP_NAME,
 } from './taskbar.constants'
 import MenuDropdown from './MenuDropdown'
 
@@ -51,11 +50,18 @@ const MenuBar = () => {
   const closeMenu = useMenuBarStore((s) => s.closeMenu)
 
   const containerRef = useRef<HTMLDivElement>(null)
+  const brandButtonRef = useRef<HTMLButtonElement>(null)
 
   useClickOutside(containerRef, closeMenu)
 
+  const appName = useMenuBarStore((s) => s.appName)
+
   const menus = appMenuConfig?.menus ?? DEFAULT_SYSTEM_MENUS.menus
-  const appName = DEFAULT_APP_NAME
+
+  const menuRefs = useMemo(
+    () => menus.map(() => createRef<HTMLButtonElement>()),
+    [menus],
+  )
 
   const handleMenuClick = (label: string) => {
     setActiveMenu(activeMenu === label ? '' : label)
@@ -72,6 +78,7 @@ const MenuBar = () => {
       {/* Brand menu */}
       <div className="relative">
         <button
+          ref={brandButtonRef}
           onClick={() => handleMenuClick(SYSTEM_BRAND_MENU.label)}
           onMouseEnter={() => handleMenuHover(SYSTEM_BRAND_MENU.label)}
           className={cn(
@@ -87,6 +94,7 @@ const MenuBar = () => {
         <MenuDropdown
           items={SYSTEM_BRAND_MENU.items}
           isVisible={activeMenu === SYSTEM_BRAND_MENU.label}
+          anchorRef={brandButtonRef}
         />
       </div>
 
@@ -96,12 +104,13 @@ const MenuBar = () => {
       </div>
 
       {/* App menus */}
-      {menus.map((menu) => {
+      {menus.map((menu, index) => {
         const isOpen = activeMenu === menu.label
 
         return (
           <div key={menu.label} className="relative">
             <button
+              ref={menuRefs[index]}
               onClick={() => handleMenuClick(menu.label)}
               onMouseEnter={() => handleMenuHover(menu.label)}
               className={cn(
@@ -114,7 +123,11 @@ const MenuBar = () => {
             >
               {menu.label}
             </button>
-            <MenuDropdown items={menu.items} isVisible={isOpen} />
+            <MenuDropdown
+              items={menu.items}
+              isVisible={isOpen}
+              anchorRef={menuRefs[index]}
+            />
           </div>
         )
       })}

@@ -1,4 +1,4 @@
-import { useRef } from 'react'
+import { useEffect, useRef } from 'react'
 import DesktopBackground from './DesktopBackground'
 import DesktopItemComponent from './DesktopItem'
 import ContextMenu from './ContextMenu'
@@ -8,6 +8,8 @@ import { Dock } from '@/shell/dock'
 import { Window } from '@/shell/window'
 import { useDesktopStore } from '@/stores/use-desktop-store'
 import { useWindowStore } from '@/stores/use-window-store'
+import { useMenuBarStore } from '@/stores/use-menubar-store'
+import { appRegistry } from '@/apps/_registry'
 import { useMarqueeSelection } from '@/hooks/use-marquee-selection'
 
 interface DesktopProps {
@@ -21,6 +23,21 @@ const Desktop = ({ isReady }: DesktopProps) => {
   const openContextMenu = useDesktopStore((s) => s.openContextMenu)
   const closeContextMenu = useDesktopStore((s) => s.closeContextMenu)
   const windows = useWindowStore((s) => s.windows)
+  const setAppMenuConfig = useMenuBarStore((s) => s.setAppMenuConfig)
+  const setAppName = useMenuBarStore((s) => s.setAppName)
+
+  useEffect(() => {
+    const focusedWindow = windows.find((w) => w.isFocused && !w.isMinimized)
+
+    if (focusedWindow) {
+      const entry = appRegistry[focusedWindow.appId]
+      setAppMenuConfig(entry?.config.menuBar ?? null)
+      setAppName(entry?.config.title ?? 'aisu')
+    } else {
+      setAppMenuConfig(null)
+      setAppName('aisu')
+    }
+  }, [windows, setAppMenuConfig, setAppName])
 
   const { marqueeRect } = useMarqueeSelection({ containerRef: desktopRef })
 

@@ -1,3 +1,5 @@
+import { useEffect, useRef, useState, type RefObject } from 'react'
+import { createPortal } from 'react-dom'
 import { cn } from '@/lib/cn'
 import type { AppMenuItem } from '@/types'
 import MenuItem from './MenuItem'
@@ -5,15 +7,32 @@ import MenuItem from './MenuItem'
 interface MenuDropdownProps {
   items: AppMenuItem[]
   isVisible: boolean
+  anchorRef: RefObject<HTMLElement | null>
 }
 
-const MenuDropdown = ({ items, isVisible }: MenuDropdownProps) => {
+const MenuDropdown = ({ items, isVisible, anchorRef }: MenuDropdownProps) => {
+  const [position, setPosition] = useState({ top: 0, left: 0 })
+  const dropdownRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (isVisible && anchorRef.current) {
+      const rect = anchorRef.current.getBoundingClientRect()
+      setPosition({
+        top: rect.bottom,
+        left: rect.left,
+      })
+    }
+  }, [isVisible, anchorRef])
+
   if (!isVisible) return null
 
-  return (
+  return createPortal(
     <div
+      ref={dropdownRef}
+      onMouseDown={(e) => e.stopPropagation()}
+      style={{ top: position.top, left: position.left }}
       className={cn(
-        'absolute left-0 top-full z-50',
+        'fixed z-[9999]',
         'min-w-[220px] w-max',
         'py-1 px-[3px]',
         'rounded-lg',
@@ -29,7 +48,8 @@ const MenuDropdown = ({ items, isVisible }: MenuDropdownProps) => {
           item={item}
         />
       ))}
-    </div>
+    </div>,
+    document.body,
   )
 }
 
