@@ -5,7 +5,9 @@ import ContextMenu from './ContextMenu'
 import MarqueeSelection from './MarqueeSelection'
 import { TopBar } from '@/shell/taskbar'
 import { Dock } from '@/shell/dock'
+import { Window } from '@/shell/window'
 import { useDesktopStore } from '@/stores/use-desktop-store'
+import { useWindowStore } from '@/stores/use-window-store'
 import { useMarqueeSelection } from '@/hooks/use-marquee-selection'
 
 interface DesktopProps {
@@ -18,6 +20,7 @@ const Desktop = ({ isReady }: DesktopProps) => {
   const clearSelection = useDesktopStore((s) => s.clearSelection)
   const openContextMenu = useDesktopStore((s) => s.openContextMenu)
   const closeContextMenu = useDesktopStore((s) => s.closeContextMenu)
+  const windows = useWindowStore((s) => s.windows)
 
   const { marqueeRect } = useMarqueeSelection({ containerRef: desktopRef })
 
@@ -55,6 +58,10 @@ const Desktop = ({ isReady }: DesktopProps) => {
           ))}
 
           <MarqueeSelection rect={marqueeRect} />
+
+          {windows.map((win) => (
+            <Window key={win.id} windowState={win} />
+          ))}
         </div>
 
         <Dock isVisible={isReady} />

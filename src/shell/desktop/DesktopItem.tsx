@@ -2,9 +2,17 @@ import { useRef, useCallback, useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { cn } from '@/lib/cn'
 import { useDesktopStore } from '@/stores/use-desktop-store'
+import { useWindowStore } from '@/stores/use-window-store'
 import { DESKTOP_ICON_MAP } from './desktop-icons'
 import { DESKTOP_ICON_SIZE } from './desktop.constants'
 import type { DesktopItem as DesktopItemType } from '@/types'
+
+// Desktop item nomi -> mock file system yo'li mapping
+const DESKTOP_PATH_MAP: Record<string, string> = {
+  'Projects': '/Desktop/Projects',
+  'notes.txt': '/Desktop/notes.txt',
+  'screenshot.png': '/Desktop/screenshot.png',
+}
 
 interface DesktopItemProps {
   item: DesktopItemType
@@ -15,6 +23,7 @@ const DesktopItem = ({ item }: DesktopItemProps) => {
   const selectItem = useDesktopStore((s) => s.selectItem)
   const updateItemPosition = useDesktopStore((s) => s.updateItemPosition)
   const openContextMenu = useDesktopStore((s) => s.openContextMenu)
+  const openWindow = useWindowStore((s) => s.openWindow)
 
   const IconComponent = DESKTOP_ICON_MAP[item.icon] ?? DESKTOP_ICON_MAP['text-file']
 
@@ -22,10 +31,21 @@ const DesktopItem = ({ item }: DesktopItemProps) => {
   const dragStartRef = useRef({ x: 0, y: 0, itemX: 0, itemY: 0 })
   const hasDraggedRef = useRef(false)
   const dragCleanupRef = useRef<(() => void) | null>(null)
+  const clickTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
-    return () => { dragCleanupRef.current?.() }
+    return () => {
+      dragCleanupRef.current?.()
+      if (clickTimerRef.current) clearTimeout(clickTimerRef.current)
+    }
   }, [])
+
+  const handleOpenItem = useCallback(() => {
+    if (item.type === 'directory') {
+      const path = DESKTOP_PATH_MAP[item.name] ?? `/Desktop/${item.name}`
+      openWindow('file-manager', { initialPath: path })
+    }
+  }, [item.name, item.type, openWindow])
 
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
     if (e.button !== 0) return
@@ -66,9 +86,23 @@ const DesktopItem = ({ item }: DesktopItemProps) => {
     }
 
     const handleMouseUp = () => {
+      const wasDragged = hasDraggedRef.current
       cleanup()
       setIsDragging(false)
       hasDraggedRef.current = false
+
+      // Double-click detection (faqat drag bo'lmaganda)
+      if (!wasDragged) {
+        if (clickTimerRef.current) {
+          clearTimeout(clickTimerRef.current)
+          clickTimerRef.current = null
+          handleOpenItem()
+        } else {
+          clickTimerRef.current = setTimeout(() => {
+            clickTimerRef.current = null
+          }, 300)
+        }
+      }
     }
 
     const cleanup = () => {
@@ -80,7 +114,7 @@ const DesktopItem = ({ item }: DesktopItemProps) => {
     document.addEventListener('mousemove', handleMouseMove)
     document.addEventListener('mouseup', handleMouseUp)
     dragCleanupRef.current = cleanup
-  }, [item.id, item.position, isSelected, selectItem, updateItemPosition])
+  }, [item.id, item.position, isSelected, selectItem, updateItemPosition, handleOpenItem])
 
   const handleContextMenu = useCallback((e: React.MouseEvent) => {
     e.preventDefault()

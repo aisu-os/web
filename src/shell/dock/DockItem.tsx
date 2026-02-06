@@ -15,6 +15,7 @@ import {
   BOUNCE_DURATION,
 } from './dock.constants'
 import DockTooltip from './DockTooltip'
+import { useWindowStore } from '@/stores/use-window-store'
 
 interface DockItemProps {
   item: DockItemConfig
@@ -25,6 +26,7 @@ const DockItem = ({ item, mouseX }: DockItemProps) => {
   const ref = useRef<HTMLDivElement>(null)
   const [isHovered, setIsHovered] = useState(false)
   const controls = useAnimationControls()
+  const openWindow = useWindowStore((s) => s.openWindow)
 
   const distance = useTransform(mouseX, (val) => {
     const bounds = ref.current?.getBoundingClientRect()
@@ -45,7 +47,7 @@ const DockItem = ({ item, mouseX }: DockItemProps) => {
   })
 
   const handleClick = async () => {
-    await controls.start({
+    controls.start({
       y: [0, -20, 0, -10, 0],
       transition: {
         duration: BOUNCE_DURATION,
@@ -53,6 +55,9 @@ const DockItem = ({ item, mouseX }: DockItemProps) => {
         ease: 'easeInOut',
       },
     })
+
+    // App ochish
+    openWindow(item.id)
   }
 
   const Icon = item.icon

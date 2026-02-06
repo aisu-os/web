@@ -1,4 +1,4 @@
-// import { lazy } from 'react'
+import { lazy } from 'react'
 import type { AppConfig } from '@/types'
 
 export interface AppRegistryEntry {
@@ -7,14 +7,18 @@ export interface AppRegistryEntry {
 }
 
 // Ilovalar config'lari qo'shilganda shu yerga import qilinadi
+import { fileManagerConfig } from './file-manager/config'
 // import { aiChatConfig } from './ai-chat/config'
 // import { terminalConfig } from './terminal/config'
-// import { fileManagerConfig } from './file-manager/config'
 // import { settingsConfig } from './settings/config'
 // import { textEditorConfig } from './text-editor/config'
 // import { appMarketConfig } from './app-market/config'
 
 export const appRegistry: Record<string, AppRegistryEntry> = {
+  'file-manager': {
+    config: fileManagerConfig,
+    component: lazy(() => import('./file-manager/FileManager')),
+  },
   // Ilovalar implementatsiya qilinganda qo'shiladi:
   //
   // 'ai-chat': {
@@ -24,10 +28,6 @@ export const appRegistry: Record<string, AppRegistryEntry> = {
   // 'terminal': {
   //   config: terminalConfig,
   //   component: lazy(() => import('./terminal/Terminal')),
-  // },
-  // 'file-manager': {
-  //   config: fileManagerConfig,
-  //   component: lazy(() => import('./file-manager/FileManager')),
   // },
   // 'settings': {
   //   config: settingsConfig,
