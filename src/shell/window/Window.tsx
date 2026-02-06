@@ -9,7 +9,6 @@ interface WindowProps {
   windowState: WindowState
 }
 
-const TOPBAR_HEIGHT = 28
 const MIN_WIDTH = 400
 const MIN_HEIGHT = 300
 
@@ -66,7 +65,7 @@ const Window = ({ windowState }: WindowProps) => {
       const handleMouseMove = (me: MouseEvent) => {
         const dx = me.clientX - dragRef.current.startX
         const dy = me.clientY - dragRef.current.startY
-        const newY = Math.max(TOPBAR_HEIGHT, dragRef.current.winY + dy)
+        const newY = Math.max(0, dragRef.current.winY + dy)
         moveWindow(id, {
           x: dragRef.current.winX + dx,
           y: newY,
@@ -124,7 +123,7 @@ const Window = ({ windowState }: WindowProps) => {
           const possibleH = resizeRef.current.startH - dy
           if (possibleH >= minH) {
             newH = possibleH
-            newY = Math.max(TOPBAR_HEIGHT, position.y + dy)
+            newY = Math.max(0, position.y + dy)
           }
         }
 
@@ -172,9 +171,9 @@ const Window = ({ windowState }: WindowProps) => {
   const computedStyle = isMaximized
     ? {
         left: 0,
-        top: TOPBAR_HEIGHT,
+        top: 0,
         width: '100%',
-        height: `calc(100% - ${TOPBAR_HEIGHT}px)`,
+        height: '100%',
         zIndex,
       }
     : {
@@ -204,6 +203,7 @@ const Window = ({ windowState }: WindowProps) => {
           exit={{ opacity: 0, scale: 0.92 }}
           transition={{ duration: 0.15 }}
           onMouseDown={handleFocus}
+          onContextMenu={(e) => e.stopPropagation()}
         >
           {/* Titlebar */}
           <div
