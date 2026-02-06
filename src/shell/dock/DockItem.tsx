@@ -27,6 +27,10 @@ const DockItem = ({ item, mouseX }: DockItemProps) => {
   const [isHovered, setIsHovered] = useState(false)
   const controls = useAnimationControls()
   const openWindow = useWindowStore((s) => s.openWindow)
+  const openCount = useWindowStore((s) =>
+    s.windows.filter((w) => w.appId === item.id).length
+  )
+  const dotCount = Math.min(openCount, 3)
 
   const distance = useTransform(mouseX, (val) => {
     const bounds = ref.current?.getBoundingClientRect()
@@ -76,6 +80,16 @@ const DockItem = ({ item, mouseX }: DockItemProps) => {
         {isHovered && <DockTooltip label={item.label} />}
       </AnimatePresence>
       <Icon size={DOCK_ICON_SIZE * 0.75} />
+      {dotCount > 0 && (
+        <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 flex gap-0.5">
+          {Array.from({ length: dotCount }).map((_, i) => (
+            <div
+              key={i}
+              className="w-1 h-1 rounded-full bg-white/90"
+            />
+          ))}
+        </div>
+      )}
     </motion.div>
   )
 }
