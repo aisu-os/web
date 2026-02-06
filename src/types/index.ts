@@ -61,3 +61,8 @@ export type {
   ContextMenuItem,
   MarqueeRect,
 } from './desktop'
+
+export type {
+  ProcessStatus,
+  ProcessState,
+} from './process'

@@ -27,7 +27,6 @@ export interface WindowState {
   size: WindowSize
   isMinimized: boolean
   isMaximized: boolean
-  isHidden: boolean
   isFocused: boolean
   zIndex: number
 }

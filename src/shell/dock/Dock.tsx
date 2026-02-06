@@ -11,7 +11,7 @@ import {
 } from './dock.constants'
 import DockItem from './DockItem'
 import DockSeparator from './DockSeparator'
-import { useWindowStore } from '@/stores/use-window-store'
+import { useProcessStore } from '@/stores/use-process-store'
 
 interface DockProps {
   isVisible: boolean
@@ -19,15 +19,15 @@ interface DockProps {
 
 const Dock = ({ isVisible }: DockProps) => {
   const mouseX = useMotionValue(Infinity)
-  const windows = useWindowStore((s) => s.windows)
+  const processes = useProcessStore((s) => s.processes)
 
-  const hiddenProcesses = windows
-    .filter((w) => w.isHidden)
-    .map((w) => ({
-      processId: w.processId,
-      dockItem: DOCK_ITEMS.find((item) => item.id === w.appId),
+  const hiddenProcesses = processes
+    .filter((p) => p.isHidden)
+    .map((p) => ({
+      processId: p.id,
+      dockItem: DOCK_ITEMS.find((item) => item.id === p.appId),
     }))
-    .filter((p) => p.dockItem != null)
+    .filter((hp) => hp.dockItem != null)
 
   return (
     <motion.div

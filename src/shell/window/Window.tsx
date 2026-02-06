@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { cn } from '@/lib/cn'
 import type { WindowState } from '@/types'
 import { useWindowStore } from '@/stores/use-window-store'
+import { useProcessStore } from '@/stores/use-process-store'
 import { appRegistry } from '@/apps/_registry'
 
 interface WindowProps {
@@ -22,14 +23,17 @@ const Window = ({ windowState }: WindowProps) => {
     size,
     isMinimized,
     isMaximized,
-    isHidden,
     isFocused,
     zIndex,
   } = windowState
 
   const closeWindow = useWindowStore((s) => s.closeWindow)
   const focusWindow = useWindowStore((s) => s.focusWindow)
-  const hideProcess = useWindowStore((s) => s.hideProcess)
+  const unfocusProcessWindows = useWindowStore((s) => s.unfocusProcessWindows)
+  const hideProcess = useProcessStore((s) => s.hideProcess)
+  const isHidden = useProcessStore((s) =>
+    s.processes.find((p) => p.id === processId)?.isHidden ?? false
+  )
   const maximizeWindow = useWindowStore((s) => s.maximizeWindow)
   const restoreWindow = useWindowStore((s) => s.restoreWindow)
   const moveWindow = useWindowStore((s) => s.moveWindow)
@@ -238,7 +242,10 @@ const Window = ({ windowState }: WindowProps) => {
                 )}
               </button>
               <button
-                onClick={() => hideProcess(processId)}
+                onClick={() => {
+                  hideProcess(processId)
+                  unfocusProcessWindows(processId)
+                }}
                 className={cn(
                   'w-3 h-3 rounded-full transition-colors flex items-center justify-center',
                   isFocused ? 'bg-[#FFBD2E] hover:bg-[#FFAA00]' : 'bg-white/15',

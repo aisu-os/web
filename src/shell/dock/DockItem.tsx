@@ -17,6 +17,7 @@ import {
 } from './dock.constants'
 import DockTooltip from './DockTooltip'
 import { useWindowStore } from '@/stores/use-window-store'
+import { useProcessStore } from '@/stores/use-process-store'
 
 interface DockItemProps {
   item: DockItemConfig
@@ -29,7 +30,8 @@ const DockItem = ({ item, mouseX, hiddenProcessId }: DockItemProps) => {
   const [isHovered, setIsHovered] = useState(false)
   const controls = useAnimationControls()
   const openWindow = useWindowStore((s) => s.openWindow)
-  const unhideProcess = useWindowStore((s) => s.unhideProcess)
+  const focusWindow = useWindowStore((s) => s.focusWindow)
+  const unhideProcess = useProcessStore((s) => s.unhideProcess)
   const openCount = useWindowStore((s) =>
     s.windows.filter((w) => w.appId === item.id).length
   )
@@ -65,6 +67,17 @@ const DockItem = ({ item, mouseX, hiddenProcessId }: DockItemProps) => {
 
     if (hiddenProcessId) {
       unhideProcess(hiddenProcessId)
+      // Shu processga tegishli eng yuqori oynani focus qilish
+      const windows = useWindowStore.getState().windows
+      const processWindows = windows.filter(
+        (w) => w.processId === hiddenProcessId && !w.isMinimized
+      )
+      if (processWindows.length > 0) {
+        const topWindow = processWindows.reduce((a, b) =>
+          a.zIndex > b.zIndex ? a : b
+        )
+        focusWindow(topWindow.id)
+      }
     } else {
       openWindow(item.id)
     }

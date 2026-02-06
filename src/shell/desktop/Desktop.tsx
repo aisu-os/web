@@ -8,6 +8,7 @@ import { Dock } from '@/shell/dock'
 import { Window } from '@/shell/window'
 import { useDesktopStore } from '@/stores/use-desktop-store'
 import { useWindowStore } from '@/stores/use-window-store'
+import { useProcessStore } from '@/stores/use-process-store'
 import { useMenuBarStore } from '@/stores/use-menubar-store'
 import { appRegistry } from '@/apps/_registry'
 import { useMarqueeSelection } from '@/hooks/use-marquee-selection'
@@ -23,11 +24,17 @@ const Desktop = ({ isReady }: DesktopProps) => {
   const openContextMenu = useDesktopStore((s) => s.openContextMenu)
   const closeContextMenu = useDesktopStore((s) => s.closeContextMenu)
   const windows = useWindowStore((s) => s.windows)
+  const processes = useProcessStore((s) => s.processes)
   const setAppMenuConfig = useMenuBarStore((s) => s.setAppMenuConfig)
   const setAppName = useMenuBarStore((s) => s.setAppName)
 
   useEffect(() => {
-    const focusedWindow = windows.find((w) => w.isFocused && !w.isMinimized && !w.isHidden)
+    const hiddenProcessIds = new Set(
+      processes.filter((p) => p.isHidden).map((p) => p.id)
+    )
+    const focusedWindow = windows.find(
+      (w) => w.isFocused && !w.isMinimized && !hiddenProcessIds.has(w.processId)
+    )
 
     if (focusedWindow) {
       const entry = appRegistry[focusedWindow.appId]
@@ -37,7 +44,7 @@ const Desktop = ({ isReady }: DesktopProps) => {
       setAppMenuConfig(null)
       setAppName('aisu')
     }
-  }, [windows, setAppMenuConfig, setAppName])
+  }, [windows, processes, setAppMenuConfig, setAppName])
 
   const { marqueeRect } = useMarqueeSelection({ containerRef: desktopRef })
 
