@@ -61,6 +61,7 @@ export function useMarqueeSelection({ containerRef }: UseMarqueeSelectionOptions
 
     const target = e.target as HTMLElement
     if (target.closest('[data-desktop-item-id]')) return
+    if (target !== containerRef.current) return
 
     const container = containerRef.current
     if (!container) return

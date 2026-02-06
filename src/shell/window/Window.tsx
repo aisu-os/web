@@ -99,7 +99,6 @@ const Window = ({ windowState }: WindowProps) => {
         startH: size.height,
         dir: direction,
       }
-
       const handleMouseMove = (me: MouseEvent) => {
         const dx = me.clientX - resizeRef.current.startX
         const dy = me.clientY - resizeRef.current.startY
