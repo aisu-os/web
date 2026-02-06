@@ -216,31 +216,60 @@ const Window = ({ windowState }: WindowProps) => {
             onDoubleClick={handleDoubleClickTitlebar}
           >
             {/* Traffic lights */}
-            <div className="flex items-center gap-2 mr-3" data-window-button>
+            <div className="group/traffic flex items-center gap-2 mr-3" data-window-button>
               <button
                 onClick={() => closeWindow(id)}
                 className={cn(
-                  'w-3 h-3 rounded-full transition-colors',
+                  'w-3 h-3 rounded-full transition-colors flex items-center justify-center',
                   isFocused ? 'bg-[#FF5F57] hover:bg-[#FF4136]' : 'bg-white/15',
                 )}
                 data-window-button
-              />
+              >
+                {isFocused && (
+                  <svg className="w-[8px] h-[8px] opacity-0 group-hover/traffic:opacity-100 transition-opacity" viewBox="0 0 10 10">
+                    <line x1="2" y1="2" x2="8" y2="8" stroke="rgba(0,0,0,0.6)" strokeWidth="1.5" strokeLinecap="round" />
+                    <line x1="8" y1="2" x2="2" y2="8" stroke="rgba(0,0,0,0.6)" strokeWidth="1.5" strokeLinecap="round" />
+                  </svg>
+                )}
+              </button>
               <button
                 onClick={() => minimizeWindow(id)}
                 className={cn(
-                  'w-3 h-3 rounded-full transition-colors',
+                  'w-3 h-3 rounded-full transition-colors flex items-center justify-center',
                   isFocused ? 'bg-[#FFBD2E] hover:bg-[#FFAA00]' : 'bg-white/15',
                 )}
                 data-window-button
-              />
+              >
+                {isFocused && (
+                  <svg className="w-[8px] h-[8px] opacity-0 group-hover/traffic:opacity-100 transition-opacity" viewBox="0 0 10 10">
+                    <line x1="1.5" y1="5" x2="8.5" y2="5" stroke="rgba(0,0,0,0.6)" strokeWidth="1.5" strokeLinecap="round" />
+                  </svg>
+                )}
+              </button>
               <button
                 onClick={() => (isMaximized ? restoreWindow(id) : maximizeWindow(id))}
                 className={cn(
-                  'w-3 h-3 rounded-full transition-colors',
+                  'w-3 h-3 rounded-full transition-colors flex items-center justify-center',
                   isFocused ? 'bg-[#28CA41] hover:bg-[#1AAB29]' : 'bg-white/15',
                 )}
                 data-window-button
-              />
+              >
+                {isFocused && (
+                  <svg className="w-[6px] h-[6px] opacity-0 group-hover/traffic:opacity-100 transition-opacity" viewBox="0 0 10 10">
+                    {isMaximized ? (
+                      <>
+                        <polyline points="3,7 3,3 7,3" fill="none" stroke="rgba(0,0,0,0.6)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                        <polyline points="7,3 7,7 3,7" fill="none" stroke="rgba(0,0,0,0.6)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                      </>
+                    ) : (
+                      <>
+                        <polyline points="1,6 1,1 6,1" fill="none" stroke="rgba(0,0,0,0.6)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                        <polyline points="9,4 9,9 4,9" fill="none" stroke="rgba(0,0,0,0.6)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                      </>
+                    )}
+                  </svg>
+                )}
+              </button>
             </div>
 
             {/* Title */}
