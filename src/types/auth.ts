@@ -5,4 +5,22 @@ export interface UserProfile {
   passwordEnabled: boolean
 }
 
-export type AuthPhase = 'booting' | 'login' | 'loading' | 'authenticated'
+export type AuthPhase = 'booting' | 'setup' | 'login' | 'loading' | 'authenticated'
+
+export type SetupStep = 'welcome' | 'account' | 'password' | 'avatar' | 'complete'
+
+export interface SetupAccountData {
+  fullName: string
+  username: string
+  email: string
+}
+
+export interface SetupPasswordData {
+  password: string
+  confirmPassword: string
+}
+
+export interface SetupUserData extends SetupAccountData {
+  password: string
+  avatar: string | null
+}

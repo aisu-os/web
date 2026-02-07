@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import type { AuthPhase, UserProfile } from '@/types'
-import { MOCK_USER, MOCK_PASSWORD } from '@/shell/login/login.constants'
+import { getCurrentUser } from '@/services/api/auth-service'
 import { useProcessStore } from '@/stores/use-process-store'
 import { useWindowStore } from '@/stores/use-window-store'
 
@@ -10,6 +10,7 @@ interface AuthStore {
   error: string | null
   isLoading: boolean
   requireInteraction: boolean
+  bootCount: number
 
   initializeAuth: () => void
   attemptLogin: (password: string) => boolean
@@ -17,6 +18,7 @@ interface AuthStore {
   startLoading: () => void
   logout: () => void
   clearError: () => void
+  completeSetup: () => void
 }
 
 export const useAuthStore = create<AuthStore>((set) => ({
@@ -25,34 +27,41 @@ export const useAuthStore = create<AuthStore>((set) => ({
   error: null,
   isLoading: false,
   requireInteraction: false,
+  bootCount: 0,
 
   initializeAuth: () => {
-    const user = MOCK_USER
+    getCurrentUser().then((user) => {
+      if (!user) {
+        set({ phase: 'setup', user: null })
+        return
+      }
 
-    if (!user) {
-      // Foydalanuvchi yo'q — keyinchalik OS setup oqimi
-      set({ phase: 'login', user: null })
-      return
-    }
+      if (!user.passwordEnabled) {
+        set({ phase: 'loading', user })
+        return
+      }
 
-    if (!user.passwordEnabled) {
-      // Parol o'chirilgan — loading orqali desktopga
-      set({ phase: 'loading', user })
-      return
-    }
-
-    // Parol kerak — login ekranini ko'rsatish
-    set({ phase: 'login', user })
+      set({ phase: 'login', user })
+    })
   },
 
   attemptLogin: (password: string) => {
-    if (password === MOCK_PASSWORD) {
+    const stored = localStorage.getItem('aisu_password')
+    if (password === stored) {
       set({ phase: 'loading', error: null })
       return true
     }
 
     set({ error: "Noto'g'ri parol" })
     return false
+  },
+
+  completeSetup: () => {
+    set((state) => ({
+      phase: 'booting',
+      user: null,
+      bootCount: state.bootCount + 1,
+    }))
   },
 
   completeLoading: () => {

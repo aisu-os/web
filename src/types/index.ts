@@ -70,6 +70,10 @@ export type {
 export type {
   UserProfile,
   AuthPhase,
+  SetupStep,
+  SetupAccountData,
+  SetupPasswordData,
+  SetupUserData,
 } from './auth'
 
 export type {
