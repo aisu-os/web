@@ -20,6 +20,7 @@ interface WindowStore {
   // App-dan ochilgan oynalar uchun qo'shimcha ma'lumot
   windowProps: Record<string, Record<string, unknown>>
   getWindowProps: (id: string) => Record<string, unknown> | undefined
+  clearAll: () => void
 }
 
 let windowCounter = 0
@@ -206,5 +207,9 @@ export const useWindowStore = create<WindowStore>((set, get) => ({
 
   getWindowProps: (id) => {
     return get().windowProps[id]
+  },
+
+  clearAll: () => {
+    set({ windows: [], nextZIndex: 100, windowProps: {} })
   },
 }))

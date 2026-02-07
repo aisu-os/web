@@ -15,7 +15,9 @@ interface UseLoginReturn {
   isDesktopLoading: boolean
   loadingProgress: number
   loadingStatus: string
+  requireInteraction: boolean
   handleSubmit: (password: string) => void
+  startLoading: () => void
 }
 
 export function useLogin(): UseLoginReturn {
@@ -25,6 +27,8 @@ export function useLogin(): UseLoginReturn {
   const attemptLogin = useAuthStore((s) => s.attemptLogin)
   const clearError = useAuthStore((s) => s.clearError)
   const completeLoading = useAuthStore((s) => s.completeLoading)
+  const requireInteraction = useAuthStore((s) => s.requireInteraction)
+  const startLoading = useAuthStore((s) => s.startLoading)
 
   const [isVisible, setIsVisible] = useState(false)
   const [isFadingOut, setIsFadingOut] = useState(false)
@@ -146,6 +150,8 @@ export function useLogin(): UseLoginReturn {
     isDesktopLoading,
     loadingProgress,
     loadingStatus,
+    requireInteraction,
     handleSubmit,
+    startLoading,
   }
 }

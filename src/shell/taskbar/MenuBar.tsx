@@ -1,7 +1,8 @@
-import { useRef, createRef, useMemo } from 'react'
+import { useRef, createRef, useMemo, useCallback } from 'react'
 import { cn } from '@/lib/cn'
 import { useClickOutside } from '@/hooks/use-click-outside'
 import { useMenuBarStore } from '@/stores/use-menubar-store'
+import { useAuthStore } from '@/stores/use-auth-store'
 import {
   SYSTEM_BRAND_MENU,
   DEFAULT_SYSTEM_MENUS,
@@ -49,10 +50,24 @@ const MenuBar = () => {
   const setActiveMenu = useMenuBarStore((s) => s.setActiveMenu)
   const closeMenu = useMenuBarStore((s) => s.closeMenu)
 
+  const logout = useAuthStore((s) => s.logout)
+
   const containerRef = useRef<HTMLDivElement>(null)
   const brandButtonRef = useRef<HTMLButtonElement>(null)
 
   useClickOutside(containerRef, closeMenu)
+
+  const handleAction = useCallback((action: string) => {
+    closeMenu()
+
+    switch (action) {
+      case 'system:logout':
+        logout()
+        break
+      default:
+        break
+    }
+  }, [closeMenu, logout])
 
   const appName = useMenuBarStore((s) => s.appName)
 
@@ -95,6 +110,7 @@ const MenuBar = () => {
           items={SYSTEM_BRAND_MENU.items}
           isVisible={activeMenu === SYSTEM_BRAND_MENU.label}
           anchorRef={brandButtonRef}
+          onAction={handleAction}
         />
       </div>
 
@@ -127,6 +143,7 @@ const MenuBar = () => {
               items={menu.items}
               isVisible={isOpen}
               anchorRef={menuRefs[index]}
+              onAction={handleAction}
             />
           </div>
         )

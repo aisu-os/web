@@ -1,16 +1,20 @@
 import { create } from 'zustand'
 import type { AuthPhase, UserProfile } from '@/types'
 import { MOCK_USER, MOCK_PASSWORD } from '@/shell/login/login.constants'
+import { useProcessStore } from '@/stores/use-process-store'
+import { useWindowStore } from '@/stores/use-window-store'
 
 interface AuthStore {
   phase: AuthPhase
   user: UserProfile | null
   error: string | null
   isLoading: boolean
+  requireInteraction: boolean
 
   initializeAuth: () => void
   attemptLogin: (password: string) => boolean
   completeLoading: () => void
+  startLoading: () => void
   logout: () => void
   clearError: () => void
 }
@@ -20,6 +24,7 @@ export const useAuthStore = create<AuthStore>((set) => ({
   user: null,
   error: null,
   isLoading: false,
+  requireInteraction: false,
 
   initializeAuth: () => {
     const user = MOCK_USER
@@ -54,8 +59,14 @@ export const useAuthStore = create<AuthStore>((set) => ({
     set({ phase: 'authenticated' })
   },
 
+  startLoading: () => {
+    set({ phase: 'loading', requireInteraction: false })
+  },
+
   logout: () => {
-    set({ phase: 'login', error: null })
+    useWindowStore.getState().clearAll()
+    useProcessStore.getState().clearAll()
+    set({ phase: 'login', error: null, requireInteraction: true })
   },
 
   clearError: () => {

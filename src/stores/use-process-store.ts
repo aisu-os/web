@@ -10,6 +10,7 @@ interface ProcessStore {
   unhideProcess: (processId: string) => void
   getProcess: (processId: string) => ProcessState | undefined
   getProcessesByApp: (appId: string) => ProcessState[]
+  clearAll: () => void
 }
 
 export const useProcessStore = create<ProcessStore>((set, get) => ({
@@ -60,5 +61,9 @@ export const useProcessStore = create<ProcessStore>((set, get) => ({
 
   getProcessesByApp: (appId) => {
     return get().processes.filter((p) => p.appId === appId)
+  },
+
+  clearAll: () => {
+    set({ processes: [] })
   },
 }))

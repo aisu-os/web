@@ -8,9 +8,10 @@ interface MenuDropdownProps {
   items: AppMenuItem[]
   isVisible: boolean
   anchorRef: RefObject<HTMLElement | null>
+  onAction?: (action: string) => void
 }
 
-const MenuDropdown = ({ items, isVisible, anchorRef }: MenuDropdownProps) => {
+const MenuDropdown = ({ items, isVisible, anchorRef, onAction }: MenuDropdownProps) => {
   const [position, setPosition] = useState({ top: 0, left: 0 })
   const dropdownRef = useRef<HTMLDivElement>(null)
 
@@ -46,6 +47,7 @@ const MenuDropdown = ({ items, isVisible, anchorRef }: MenuDropdownProps) => {
         <MenuItem
           key={item.separator ? `sep-${index}` : item.label}
           item={item}
+          onAction={onAction}
         />
       ))}
     </div>,

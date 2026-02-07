@@ -3,16 +3,24 @@ import type { AppMenuItem } from '@/types'
 
 interface MenuItemProps {
   item: AppMenuItem
+  onAction?: (action: string) => void
 }
 
-const MenuItem = ({ item }: MenuItemProps) => {
+const MenuItem = ({ item, onAction }: MenuItemProps) => {
   if (item.separator) {
     return <div className="mx-2 my-1 h-px bg-white/10" />
+  }
+
+  const handleClick = () => {
+    if (item.action && !item.disabled && onAction) {
+      onAction(item.action)
+    }
   }
 
   return (
     <button
       disabled={item.disabled}
+      onClick={handleClick}
       className={cn(
         'flex w-full items-center justify-between rounded px-3 py-[3px] text-[13px]',
         'text-left tracking-wide outline-none',

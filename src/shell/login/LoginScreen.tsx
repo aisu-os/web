@@ -7,6 +7,7 @@ import LoginClock from './LoginClock'
 import LoginAvatar from './LoginAvatar'
 import LoginPasswordField from './LoginPasswordField'
 import LoginProgress from './LoginProgress'
+import LoginEnterPrompt from './LoginEnterPrompt'
 import './login-screen.css'
 
 const LoginScreen = () => {
@@ -19,7 +20,9 @@ const LoginScreen = () => {
     isDesktopLoading,
     loadingProgress,
     loadingStatus,
+    requireInteraction,
     handleSubmit,
+    startLoading,
   } = useLogin()
 
   const wallpaper = useThemeStore((s) => s.theme.wallpaper)
@@ -46,13 +49,15 @@ const LoginScreen = () => {
 
         {isDesktopLoading ? (
           <LoginProgress progress={loadingProgress} status={loadingStatus} />
-        ) : (
+        ) : user.passwordEnabled ? (
           <LoginPasswordField
             onSubmit={handleSubmit}
             error={error}
             isLoading={isLoading}
           />
-        )}
+        ) : requireInteraction ? (
+          <LoginEnterPrompt onContinue={startLoading} />
+        ) : null}
       </div>
 
       {/* Pastdagi versiya matni */}
