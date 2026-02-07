@@ -5,6 +5,8 @@ export const SYSTEM_BRAND_MENU: AppMenu = {
   items: [
     { label: 'About aisu', action: 'system:about' },
     { label: '', separator: true },
+    { label: 'Full Screen', action: 'system:fullscreen' },
+    { label: '', separator: true },
     { label: 'System Preferences...', action: 'system:preferences' },
     { label: 'App Market...', action: 'system:app-market' },
     { label: '', separator: true },

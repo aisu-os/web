@@ -65,6 +65,13 @@ const MenuBar = () => {
       case 'system:about':
         openAbout()
         break
+      case 'system:fullscreen':
+        if (document.fullscreenElement) {
+          document.exitFullscreen()
+        } else {
+          document.documentElement.requestFullscreen()
+        }
+        break
       case 'system:logout':
         logout()
         break
