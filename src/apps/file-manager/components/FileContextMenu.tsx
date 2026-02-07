@@ -22,7 +22,7 @@ const FileContextMenu = () => {
   const { getNode } = useFileSystem()
   const adjustedPosition = useMenuPosition(menuRef, contextMenu.isOpen, contextMenu.position)
 
-  useClickOutside(menuRef, closeContextMenu, { onContextMenu: true, onEscape: true })
+  useClickOutside(menuRef, closeContextMenu, { enabled: contextMenu.isOpen, onContextMenu: true, onEscape: true })
 
   const handleAction = useCallback(
     (action: string | undefined) => {

@@ -1,6 +1,7 @@
 import { useEffect, useRef, type RefObject } from 'react'
 
 interface UseClickOutsideOptions {
+  enabled?: boolean
   onContextMenu?: boolean
   onEscape?: boolean
 }
@@ -16,7 +17,11 @@ export function useClickOutside<T extends HTMLElement>(
     callbackRef.current = callback
   })
 
+  const enabled = options?.enabled ?? true
+
   useEffect(() => {
+    if (!enabled) return
+
     function handleMouseDown(e: MouseEvent) {
       if (ref.current && !ref.current.contains(e.target as Node)) {
         callbackRef.current()
@@ -46,5 +51,5 @@ export function useClickOutside<T extends HTMLElement>(
         document.removeEventListener('keydown', handleKeyDown)
       }
     }
-  }, [ref, options?.onContextMenu, options?.onEscape])
+  }, [ref, enabled, options?.onContextMenu, options?.onEscape])
 }
