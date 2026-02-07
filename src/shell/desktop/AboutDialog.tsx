@@ -146,7 +146,7 @@ const AboutDialog = () => {
               </button>
 
               <p className="mt-4 text-[11px] text-white/30 text-center">
-                &copy; 2025 aisu. All rights reserved.
+                &copy; {new Date().getFullYear()} aisu. All rights reserved.
               </p>
             </div>
           </motion.div>
