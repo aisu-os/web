@@ -51,6 +51,7 @@ const MenuBar = () => {
   const closeMenu = useMenuBarStore((s) => s.closeMenu)
 
   const logout = useAuthStore((s) => s.logout)
+  const openAbout = useMenuBarStore((s) => s.openAbout)
 
   const containerRef = useRef<HTMLDivElement>(null)
   const brandButtonRef = useRef<HTMLButtonElement>(null)
@@ -61,13 +62,16 @@ const MenuBar = () => {
     closeMenu()
 
     switch (action) {
+      case 'system:about':
+        openAbout()
+        break
       case 'system:logout':
         logout()
         break
       default:
         break
     }
-  }, [closeMenu, logout])
+  }, [closeMenu, logout, openAbout])
 
   const appName = useMenuBarStore((s) => s.appName)
 

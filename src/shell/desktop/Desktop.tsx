@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react'
 import DesktopBackground from './DesktopBackground'
 import DesktopItemComponent from './DesktopItem'
 import ContextMenu from './ContextMenu'
+import AboutDialog from './AboutDialog'
 import MarqueeSelection from './MarqueeSelection'
 import { TopBar } from '@/shell/taskbar'
 import { Dock } from '@/shell/dock'
@@ -92,6 +93,7 @@ const Desktop = ({ isReady }: DesktopProps) => {
       </div>
 
       <ContextMenu />
+      <AboutDialog />
     </div>
   )
 }
