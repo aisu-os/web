@@ -83,3 +83,10 @@ export type {
   BatteryManager,
   BatteryState,
 } from './battery'
+
+export type {
+  ConnectionType,
+  EffectiveConnectionType,
+  NetworkState,
+  NetworkInformation,
+} from './network'
