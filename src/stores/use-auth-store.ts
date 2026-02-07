@@ -10,6 +10,7 @@ interface AuthStore {
 
   initializeAuth: () => void
   attemptLogin: (password: string) => boolean
+  completeLoading: () => void
   logout: () => void
   clearError: () => void
 }
@@ -30,8 +31,8 @@ export const useAuthStore = create<AuthStore>((set) => ({
     }
 
     if (!user.passwordEnabled) {
-      // Parol o'chirilgan — to'g'ridan-to'g'ri desktopga
-      set({ phase: 'authenticated', user })
+      // Parol o'chirilgan — loading orqali desktopga
+      set({ phase: 'loading', user })
       return
     }
 
@@ -41,12 +42,16 @@ export const useAuthStore = create<AuthStore>((set) => ({
 
   attemptLogin: (password: string) => {
     if (password === MOCK_PASSWORD) {
-      set({ phase: 'authenticated', error: null })
+      set({ phase: 'loading', error: null })
       return true
     }
 
     set({ error: "Noto'g'ri parol" })
     return false
+  },
+
+  completeLoading: () => {
+    set({ phase: 'authenticated' })
   },
 
   logout: () => {

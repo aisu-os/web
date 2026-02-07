@@ -1,7 +1,7 @@
 import type { UserProfile } from '@/types'
 
 // Bu flagni o'zgartirib ikkala holatni test qilish mumkin
-export const MOCK_PASSWORD_ENABLED = true
+export const MOCK_PASSWORD_ENABLED = false
 
 export const MOCK_USER: UserProfile = {
   id: 'user-1',
@@ -20,4 +20,13 @@ export const LOGIN_TIMING = {
   shakeDuration: 500,
   successDelay: 600,
   fadeOutDuration: 800,
+  loadingDuration: 3000,
+  loadingStatusInterval: 1000,
 } as const
+
+export const LOGIN_LOADING_MESSAGES = [
+  'Ish stoli tayyorlanmoqda',
+  'Ilovalar yuklanmoqda',
+  'Fayllar sinxronlanmoqda',
+  'Deyarli tayyor',
+] as const

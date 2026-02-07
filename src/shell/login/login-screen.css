@@ -265,6 +265,61 @@
   animation: loginFieldSlideUp 0.3s ease-out forwards;
 }
 
+/* ── Loading Progress ── */
+.login-progress {
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  opacity: 0;
+  animation: loginFieldSlideUp 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.login-progress__bar {
+  width: 220px;
+  height: 4px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.12);
+  overflow: hidden;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.login-progress__fill {
+  height: 100%;
+  border-radius: 2px;
+  background: linear-gradient(90deg, var(--ice-400), var(--ice-300));
+  box-shadow: 0 0 12px rgba(56, 189, 248, 0.4);
+  transition: width 80ms linear;
+  position: relative;
+}
+
+.login-progress__fill::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.3),
+    transparent
+  );
+  animation: loginProgressShimmer 1.5s ease-in-out infinite;
+}
+
+.login-progress__status {
+  font-family: 'Nunito', sans-serif;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.5);
+  letter-spacing: 0.5px;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+  transition: opacity 0.2s ease;
+}
+
 /* ── Footer ── */
 .login-footer {
   position: absolute;
@@ -407,5 +462,14 @@
   }
   100% {
     opacity: 0;
+  }
+}
+
+@keyframes loginProgressShimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
   }
 }

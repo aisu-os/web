@@ -5,4 +5,4 @@ export interface UserProfile {
   passwordEnabled: boolean
 }
 
-export type AuthPhase = 'booting' | 'login' | 'authenticated'
+export type AuthPhase = 'booting' | 'login' | 'loading' | 'authenticated'

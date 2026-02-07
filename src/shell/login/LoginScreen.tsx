@@ -6,11 +6,21 @@ import { VERSION_TEXT } from '@/shell/boot/boot.constants'
 import LoginClock from './LoginClock'
 import LoginAvatar from './LoginAvatar'
 import LoginPasswordField from './LoginPasswordField'
+import LoginProgress from './LoginProgress'
 import './login-screen.css'
 
 const LoginScreen = () => {
-  const { isVisible, isFadingOut, user, error, isLoading, handleSubmit } =
-    useLogin()
+  const {
+    isVisible,
+    isFadingOut,
+    user,
+    error,
+    isLoading,
+    isDesktopLoading,
+    loadingProgress,
+    loadingStatus,
+    handleSubmit,
+  } = useLogin()
 
   const wallpaper = useThemeStore((s) => s.theme.wallpaper)
   const { backgroundStyle } = useWallpaper(wallpaper)
@@ -34,11 +44,15 @@ const LoginScreen = () => {
 
         <div className="login-username">{user.displayName}</div>
 
-        <LoginPasswordField
-          onSubmit={handleSubmit}
-          error={error}
-          isLoading={isLoading}
-        />
+        {isDesktopLoading ? (
+          <LoginProgress progress={loadingProgress} status={loadingStatus} />
+        ) : (
+          <LoginPasswordField
+            onSubmit={handleSubmit}
+            error={error}
+            isLoading={isLoading}
+          />
+        )}
       </div>
 
       {/* Pastdagi versiya matni */}
