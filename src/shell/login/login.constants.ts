@@ -1,7 +1,7 @@
 import type { UserProfile } from '@/types'
 
 // Bu flagni o'zgartirib ikkala holatni test qilish mumkin
-export const MOCK_PASSWORD_ENABLED = false
+export const MOCK_PASSWORD_ENABLED = true
 
 export const MOCK_USER: UserProfile = {
   id: 'user-1',
