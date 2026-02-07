@@ -1,12 +1,26 @@
+import { useEffect } from 'react'
 import { BootScreen } from '@/shell/boot'
 import { LoginScreen } from '@/shell/login'
 import { Desktop } from '@/shell/desktop'
 import { useAuthStore } from '@/stores/use-auth-store'
+import { useCursorStore } from '@/stores/use-cursor-store'
 import { isMobile, MobileBlocker } from '@/components/MobileBlocker'
+import { CursorOverlay, useCursorHandlers } from '@/cursor'
+import '@/cursor/cursor.css'
 
 function App() {
   const phase = useAuthStore((s) => s.phase)
   const initializeAuth = useAuthStore((s) => s.initializeAuth)
+  const isCursorEnabled = useCursorStore((s) => s.isEnabled)
+
+  useCursorHandlers()
+
+  useEffect(() => {
+    document.documentElement.classList.toggle('custom-cursor-active', isCursorEnabled)
+    return () => {
+      document.documentElement.classList.remove('custom-cursor-active')
+    }
+  }, [isCursorEnabled])
 
   if (isMobile) return <MobileBlocker />
 
@@ -15,6 +29,7 @@ function App() {
       {phase === 'authenticated' && <Desktop isReady />}
       <LoginScreen />
       <BootScreen onComplete={initializeAuth} />
+      <CursorOverlay />
     </>
   )
 }

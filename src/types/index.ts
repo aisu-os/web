@@ -71,3 +71,10 @@ export type {
   UserProfile,
   AuthPhase,
 } from './auth'
+
+export type {
+  CursorType,
+  CursorAsset,
+  CursorTheme,
+  CursorThemeMeta,
+} from './cursor'

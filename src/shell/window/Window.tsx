@@ -4,6 +4,7 @@ import { cn } from '@/lib/cn'
 import type { WindowState } from '@/types'
 import { useWindowStore } from '@/stores/use-window-store'
 import { useProcessStore } from '@/stores/use-process-store'
+import { useCursorStore } from '@/stores/use-cursor-store'
 import { appRegistry } from '@/apps/_registry'
 
 interface WindowProps {
@@ -67,6 +68,7 @@ const Window = ({ windowState }: WindowProps) => {
         winY: position.y,
       }
       setIsDragging(true)
+      useCursorStore.getState().setCursorType('grabbing')
 
       const handleMouseMove = (me: MouseEvent) => {
         const dx = me.clientX - dragRef.current.startX
@@ -80,6 +82,7 @@ const Window = ({ windowState }: WindowProps) => {
 
       const handleMouseUp = () => {
         setIsDragging(false)
+        useCursorStore.getState().resetCursor()
         document.removeEventListener('mousemove', handleMouseMove)
         document.removeEventListener('mouseup', handleMouseUp)
       }
@@ -105,6 +108,8 @@ const Window = ({ windowState }: WindowProps) => {
         startH: size.height,
         dir: direction,
       }
+      useCursorStore.getState().setCursorType(`${direction}-resize` as any)
+
       const handleMouseMove = (me: MouseEvent) => {
         const dx = me.clientX - resizeRef.current.startX
         const dy = me.clientY - resizeRef.current.startY
@@ -139,6 +144,7 @@ const Window = ({ windowState }: WindowProps) => {
       }
 
       const handleMouseUp = () => {
+        useCursorStore.getState().resetCursor()
         document.removeEventListener('mousemove', handleMouseMove)
         document.removeEventListener('mouseup', handleMouseUp)
       }

@@ -1,6 +1,7 @@
-import { useMemo } from 'react'
+import { useMemo, useEffect } from 'react'
 import { cn } from '@/lib/cn'
 import { useBoot } from '@/hooks/use-boot'
+import { useCursorStore } from '@/stores/use-cursor-store'
 import BootLogo from './BootLogo'
 import { PARTICLE_COUNT, HEX_GRID_SPACING, VERSION_TEXT } from './boot.constants'
 import './boot-screen.css'
@@ -42,6 +43,15 @@ const BootScreen = ({ onComplete }: BootScreenProps) => {
   const { isVisible, isFadingOut, statusText, isStatusFading } = useBoot({
     onComplete,
   })
+
+  useEffect(() => {
+    if (isVisible) {
+      useCursorStore.getState().setCursorType('wait')
+    }
+    return () => {
+      useCursorStore.getState().resetCursor()
+    }
+  }, [isVisible])
 
   const hexDots = useMemo(() => generateHexGrid(HEX_GRID_SPACING), [])
   const particles = useMemo(() => generateParticles(PARTICLE_COUNT), [])
