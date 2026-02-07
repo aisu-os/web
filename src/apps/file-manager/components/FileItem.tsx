@@ -1,5 +1,6 @@
 import { useRef, useCallback } from 'react'
 import { cn } from '@/lib/cn'
+import { DOUBLE_CLICK_DELAY } from '@/lib/constants'
 import type { FileNode } from '@/types'
 import { getFileIcon } from '../file-manager-icons'
 import { formatFileSize, formatDate, getFileKind } from '../file-manager.utils'
@@ -50,7 +51,7 @@ const FileItem = ({
         clickTimer.current = setTimeout(() => {
           clickTimer.current = null
           onSelect(node.path, e.metaKey || e.ctrlKey)
-        }, 250)
+        }, DOUBLE_CLICK_DELAY)
       }
     },
     [node.path, isEditing, onSelect, onOpen]

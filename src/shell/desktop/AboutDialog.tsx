@@ -1,8 +1,10 @@
-import { useEffect, useRef, useCallback, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { cn } from '@/lib/cn'
+import { Z_INDEX } from '@/lib/constants'
 import { useMenuBarStore } from '@/stores/use-menubar-store'
+import { useDrag } from '@/hooks/use-drag'
 import { VERSION_TEXT } from '@/shell/boot/boot.constants'
 import AboutLogo from './AboutLogo'
 
@@ -10,10 +12,9 @@ const AboutDialog = () => {
   const isOpen = useMenuBarStore((s) => s.isAboutOpen)
   const closeAbout = useMenuBarStore((s) => s.closeAbout)
   const panelRef = useRef<HTMLDivElement>(null)
-  const dragRef = useRef({ startX: 0, startY: 0, panelX: 0, panelY: 0 })
   const positionRef = useRef({ x: 0, y: 0 })
+  const dragStartRef = useRef({ x: 0, y: 0 })
   const [position, setPosition] = useState({ x: 0, y: 0 })
-  const [isDragging, setIsDragging] = useState(false)
 
   useEffect(() => {
     if (!isOpen) {
@@ -31,41 +32,26 @@ const AboutDialog = () => {
     return () => document.removeEventListener('keydown', handleKeyDown)
   }, [isOpen, closeAbout])
 
-  const handleTitlebarMouseDown = useCallback(
-    (e: React.MouseEvent) => {
-      if ((e.target as HTMLElement).closest('[data-window-button]')) return
-      e.preventDefault()
-
-      dragRef.current = {
-        startX: e.clientX,
-        startY: e.clientY,
-        panelX: positionRef.current.x,
-        panelY: positionRef.current.y,
-      }
-      setIsDragging(true)
-
-      const handleMouseMove = (me: MouseEvent) => {
-        const dx = me.clientX - dragRef.current.startX
-        const dy = me.clientY - dragRef.current.startY
-        const newPos = {
-          x: dragRef.current.panelX + dx,
-          y: dragRef.current.panelY + dy,
-        }
-        positionRef.current = newPos
-        setPosition(newPos)
-      }
-
-      const handleMouseUp = () => {
-        setIsDragging(false)
-        document.removeEventListener('mousemove', handleMouseMove)
-        document.removeEventListener('mouseup', handleMouseUp)
-      }
-
-      document.addEventListener('mousemove', handleMouseMove)
-      document.addEventListener('mouseup', handleMouseUp)
+  const titlebarDrag = useDrag({
+    shouldStart: (e) => {
+      if ((e.target as HTMLElement).closest('[data-window-button]')) return false
+      dragStartRef.current = { ...positionRef.current }
+      return true
     },
-    [],
-  )
+    onDragMove: (dx, dy) => {
+      const maxX = window.innerWidth - 140
+      const maxY = window.innerHeight - 100
+      const minX = -(window.innerWidth - 140)
+      const minY = -(window.innerHeight / 2)
+
+      const newPos = {
+        x: Math.max(minX, Math.min(maxX, dragStartRef.current.x + dx)),
+        y: Math.max(minY, Math.min(maxY, dragStartRef.current.y + dy)),
+      }
+      positionRef.current = newPos
+      setPosition(newPos)
+    },
+  })
 
   const handleBackdropClick = (e: React.MouseEvent) => {
     if (panelRef.current && !panelRef.current.contains(e.target as Node)) {
@@ -77,7 +63,8 @@ const AboutDialog = () => {
     <AnimatePresence>
       {isOpen && (
         <motion.div
-          className="fixed inset-0 z-[9998] flex items-center justify-center"
+          className="fixed inset-0 flex items-center justify-center"
+          style={{ zIndex: Z_INDEX.aboutDialog }}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -95,12 +82,12 @@ const AboutDialog = () => {
               'shadow-2xl shadow-black/40',
               'ring-1 ring-inset ring-white/10',
               'select-none',
-              isDragging && 'cursor-grabbing',
+              titlebarDrag.isDragging && 'cursor-grabbing',
             )}
             initial={{ opacity: 0, scale: 0.92, x: 0, y: 0 }}
             animate={{ opacity: 1, scale: 1, x: position.x, y: position.y }}
             exit={{ opacity: 0, scale: 0.92 }}
-            transition={isDragging ? { duration: 0 } : { duration: 0.15 }}
+            transition={titlebarDrag.isDragging ? { duration: 0 } : { duration: 0.15 }}
             onMouseDown={(e) => e.stopPropagation()}
           >
             {/* Titlebar */}
@@ -124,7 +111,7 @@ const AboutDialog = () => {
               {/* Drag zone */}
               <div
                 className="flex-1 h-full cursor-grab active:cursor-grabbing"
-                onMouseDown={handleTitlebarMouseDown}
+                onMouseDown={titlebarDrag.handleMouseDown}
               />
             </div>
 

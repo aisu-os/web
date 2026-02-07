@@ -1,8 +1,11 @@
-import { useRef, useState, useEffect, useCallback, useLayoutEffect } from 'react'
+import { useRef, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { cn } from '@/lib/cn'
+import { Z_INDEX } from '@/lib/constants'
 import { useDesktopStore } from '@/stores/use-desktop-store'
 import { useWindowStore } from '@/stores/use-window-store'
+import { useClickOutside } from '@/hooks/use-click-outside'
+import { useMenuPosition } from '@/hooks/use-menu-position'
 import {
   DESKTOP_CONTEXT_MENU_ITEMS,
   ITEM_CONTEXT_MENU_ITEMS,
@@ -23,52 +26,9 @@ const ContextMenu = () => {
   const items = useDesktopStore((s) => s.items)
   const openWindow = useWindowStore((s) => s.openWindow)
   const menuRef = useRef<HTMLDivElement>(null)
-  const [adjustedPosition, setAdjustedPosition] = useState(contextMenu.position)
+  const adjustedPosition = useMenuPosition(menuRef, contextMenu.isOpen, contextMenu.position)
 
-  useEffect(() => {
-    if (!contextMenu.isOpen) return
-
-    const handleClickOutside = (e: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
-        closeContextMenu()
-      }
-    }
-
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') closeContextMenu()
-    }
-
-    requestAnimationFrame(() => {
-      document.addEventListener('mousedown', handleClickOutside)
-      document.addEventListener('contextmenu', handleClickOutside)
-      document.addEventListener('keydown', handleKeyDown)
-    })
-
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside)
-      document.removeEventListener('contextmenu', handleClickOutside)
-      document.removeEventListener('keydown', handleKeyDown)
-    }
-  }, [contextMenu.isOpen, closeContextMenu])
-
-  useLayoutEffect(() => {
-    if (!contextMenu.isOpen || !menuRef.current) {
-      setAdjustedPosition(contextMenu.position)
-      return
-    }
-
-    const rect = menuRef.current.getBoundingClientRect()
-    let { x, y } = contextMenu.position
-
-    if (rect.right > window.innerWidth) {
-      x = contextMenu.position.x - rect.width
-    }
-    if (rect.bottom > window.innerHeight) {
-      y = contextMenu.position.y - rect.height
-    }
-
-    setAdjustedPosition({ x, y })
-  }, [contextMenu.isOpen, contextMenu.position])
+  useClickOutside(menuRef, closeContextMenu, { onContextMenu: true, onEscape: true })
 
   const handleAction = useCallback((action?: string) => {
     if (!action) return
@@ -111,7 +71,7 @@ const ContextMenu = () => {
         <motion.div
           ref={menuRef}
           className={cn(
-            'fixed z-[9999]',
+            'fixed',
             'min-w-[220px] w-max',
             'py-1 px-[3px]',
             'rounded-lg',
@@ -123,6 +83,7 @@ const ContextMenu = () => {
           style={{
             left: adjustedPosition.x,
             top: adjustedPosition.y,
+            zIndex: Z_INDEX.contextMenu,
           }}
           initial={{ opacity: 0, scale: 0.92 }}
           animate={{ opacity: 1, scale: 1 }}

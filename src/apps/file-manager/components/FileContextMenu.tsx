@@ -1,6 +1,9 @@
-import { useRef, useState, useEffect, useLayoutEffect, useCallback } from 'react'
+import { useRef, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { cn } from '@/lib/cn'
+import { Z_INDEX } from '@/lib/constants'
+import { useClickOutside } from '@/hooks/use-click-outside'
+import { useMenuPosition } from '@/hooks/use-menu-position'
 import { useFileManagerStore } from '../hooks/use-file-manager-store'
 import { useFileSystem } from '../hooks/use-file-system'
 import {
@@ -16,53 +19,10 @@ const FileContextMenu = () => {
   const startRenaming = useFileManagerStore((s) => s.startRenaming)
   const navigateTo = useFileManagerStore((s) => s.navigateTo)
   const menuRef = useRef<HTMLDivElement>(null)
-  const [adjustedPosition, setAdjustedPosition] = useState(contextMenu.position)
   const { getNode } = useFileSystem()
+  const adjustedPosition = useMenuPosition(menuRef, contextMenu.isOpen, contextMenu.position)
 
-  useEffect(() => {
-    if (!contextMenu.isOpen) return
-
-    const handleClickOutside = (e: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
-        closeContextMenu()
-      }
-    }
-
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') closeContextMenu()
-    }
-
-    requestAnimationFrame(() => {
-      document.addEventListener('mousedown', handleClickOutside)
-      document.addEventListener('contextmenu', handleClickOutside)
-      document.addEventListener('keydown', handleKeyDown)
-    })
-
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside)
-      document.removeEventListener('contextmenu', handleClickOutside)
-      document.removeEventListener('keydown', handleKeyDown)
-    }
-  }, [contextMenu.isOpen, closeContextMenu])
-
-  useLayoutEffect(() => {
-    if (!contextMenu.isOpen || !menuRef.current) {
-      setAdjustedPosition(contextMenu.position)
-      return
-    }
-
-    const rect = menuRef.current.getBoundingClientRect()
-    let { x, y } = contextMenu.position
-
-    if (rect.right > window.innerWidth) {
-      x = contextMenu.position.x - rect.width
-    }
-    if (rect.bottom > window.innerHeight) {
-      y = contextMenu.position.y - rect.height
-    }
-
-    setAdjustedPosition({ x, y })
-  }, [contextMenu.isOpen, contextMenu.position])
+  useClickOutside(menuRef, closeContextMenu, { onContextMenu: true, onEscape: true })
 
   const handleAction = useCallback(
     (action: string | undefined) => {
@@ -104,7 +64,7 @@ const FileContextMenu = () => {
         <motion.div
           ref={menuRef}
           className={cn(
-            'fixed z-[9999]',
+            'fixed',
             'min-w-[220px] w-max',
             'py-1 px-[3px]',
             'rounded-lg',
@@ -116,6 +76,7 @@ const FileContextMenu = () => {
           style={{
             left: adjustedPosition.x,
             top: adjustedPosition.y,
+            zIndex: Z_INDEX.contextMenu,
           }}
           initial={{ opacity: 0, scale: 0.92 }}
           animate={{ opacity: 1, scale: 1 }}

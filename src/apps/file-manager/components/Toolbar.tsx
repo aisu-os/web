@@ -1,20 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { cn } from '@/lib/cn'
 import { useFileManagerStore } from '../hooks/use-file-manager-store'
-import type { ViewMode, SortKey } from '../file-manager.types'
-
-const VIEW_MODES: { mode: ViewMode; label: string }[] = [
-  { mode: 'icon', label: 'Icon' },
-  { mode: 'list', label: 'List' },
-  { mode: 'column', label: 'Column' },
-]
-
-const SORT_OPTIONS: { key: SortKey; label: string }[] = [
-  { key: 'name', label: 'Name' },
-  { key: 'dateModified', label: 'Date Modified' },
-  { key: 'size', label: 'Size' },
-  { key: 'kind', label: 'Kind' },
-]
+import { VIEW_MODES, SORT_OPTIONS } from '../file-manager.constants'
 
 const Toolbar = () => {
   const goBack = useFileManagerStore((s) => s.goBack)

@@ -1,8 +1,11 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { cn } from '@/lib/cn'
+import { Z_INDEX } from '@/lib/constants'
 import { useNetwork } from '@/hooks/use-network'
+import { useClickOutside } from '@/hooks/use-click-outside'
+import InfoRow from './InfoRow'
 import type { NetworkState, EffectiveConnectionType } from '@/types'
 
 const WifiIndicator = () => {
@@ -11,29 +14,7 @@ const WifiIndicator = () => {
   const containerRef = useRef<HTMLDivElement>(null)
   const [position, setPosition] = useState({ top: 0, right: 0 })
 
-  useEffect(() => {
-    if (!isOpen) return
-
-    const handleClickOutside = (e: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
-        setIsOpen(false)
-      }
-    }
-
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setIsOpen(false)
-    }
-
-    requestAnimationFrame(() => {
-      document.addEventListener('mousedown', handleClickOutside)
-      document.addEventListener('keydown', handleKeyDown)
-    })
-
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside)
-      document.removeEventListener('keydown', handleKeyDown)
-    }
-  }, [isOpen])
+  useClickOutside(containerRef, () => setIsOpen(false), { onEscape: true })
 
   const handleClick = () => {
     if (!isOpen && containerRef.current) {
@@ -61,9 +42,9 @@ const WifiIndicator = () => {
           {isOpen && (
             <motion.div
               onMouseDown={(e) => e.stopPropagation()}
-              style={{ top: position.top, right: position.right }}
+              style={{ top: position.top, right: position.right, zIndex: Z_INDEX.dropdown }}
               className={cn(
-                'fixed z-[9999]',
+                'fixed',
                 'w-[264px]',
                 'rounded-xl',
                 'bg-black/30 backdrop-blur-2xl backdrop-saturate-150',
@@ -95,13 +76,13 @@ const WifiIndicator = () => {
                 {[1, 2, 3, 4].map((bar) => (
                   <div
                     key={bar}
-                    className="w-[5px] rounded-sm"
-                    style={{
-                      height: `${bar * 5}px`,
-                      backgroundColor: bar <= signalBars
-                        ? (network.online ? '#34D399' : '#F87171')
-                        : 'rgba(255,255,255,0.15)',
-                    }}
+                    className={cn(
+                      'w-[5px] rounded-sm',
+                      bar <= signalBars
+                        ? (network.online ? 'bg-emerald-400' : 'bg-red-400')
+                        : 'bg-white/15',
+                    )}
+                    style={{ height: `${bar * 5}px` }}
                   />
                 ))}
               </div>
@@ -226,20 +207,5 @@ function getQualityColor(effectiveType: EffectiveConnectionType): string {
     default: return 'text-white/70'
   }
 }
-
-const InfoRow = ({
-  label,
-  value,
-  valueColor = 'text-white/70',
-}: {
-  label: string
-  value: string
-  valueColor?: string
-}) => (
-  <div className="flex items-center justify-between">
-    <span className="text-[12px] text-white/50">{label}</span>
-    <span className={cn('text-[12px]', valueColor)}>{value}</span>
-  </div>
-)
 
 export default WifiIndicator

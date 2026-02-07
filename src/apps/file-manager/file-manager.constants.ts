@@ -1,6 +1,19 @@
 import type { FileNode } from '@/types'
 import type { ContextMenuItem } from '@/types/desktop'
-import type { SidebarFavorite, SidebarTag } from './file-manager.types'
+import type { SidebarFavorite, SidebarTag, ViewMode, SortKey } from './file-manager.types'
+
+export const VIEW_MODES: { mode: ViewMode; label: string }[] = [
+  { mode: 'icon', label: 'Icon' },
+  { mode: 'list', label: 'List' },
+  { mode: 'column', label: 'Column' },
+]
+
+export const SORT_OPTIONS: { key: SortKey; label: string }[] = [
+  { key: 'name', label: 'Name' },
+  { key: 'dateModified', label: 'Date Modified' },
+  { key: 'size', label: 'Size' },
+  { key: 'kind', label: 'Kind' },
+]
 
 export const MOCK_FILE_SYSTEM: FileNode = {
   name: '/',

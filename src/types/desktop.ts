@@ -1,4 +1,5 @@
 import type { FileType } from './file-system'
+import type { AppMenuItem } from './app'
 
 export interface DesktopItem {
   id: string
@@ -8,13 +9,7 @@ export interface DesktopItem {
   position: { x: number; y: number }
 }
 
-export interface ContextMenuItem {
-  label: string
-  action?: string
-  shortcut?: string
-  separator?: boolean
-  disabled?: boolean
-}
+export type ContextMenuItem = AppMenuItem
 
 export interface MarqueeRect {
   left: number

@@ -1,10 +1,11 @@
-import { useRef, useCallback, useState, useEffect, Suspense } from 'react'
+import { useRef, useCallback, useEffect, Suspense } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { cn } from '@/lib/cn'
 import type { WindowState } from '@/types'
 import { useWindowStore } from '@/stores/use-window-store'
 import { useProcessStore } from '@/stores/use-process-store'
 import { useCursorStore } from '@/stores/use-cursor-store'
+import { useDrag } from '@/hooks/use-drag'
 import { appRegistry } from '@/apps/_registry'
 
 interface WindowProps {
@@ -41,9 +42,8 @@ const Window = ({ windowState }: WindowProps) => {
   const resizeWindow = useWindowStore((s) => s.resizeWindow)
   const windowProps = useWindowStore((s) => s.getWindowProps(id))
 
-  const dragRef = useRef({ startX: 0, startY: 0, winX: 0, winY: 0 })
   const resizeRef = useRef({ startX: 0, startY: 0, startW: 0, startH: 0, dir: '' })
-  const [isDragging, setIsDragging] = useState(false)
+  const dragStartRef = useRef({ x: 0, y: 0 })
 
   const entry = appRegistry[appId]
   if (!entry) return null
@@ -53,45 +53,25 @@ const Window = ({ windowState }: WindowProps) => {
   const minW = config.window.minWidth ?? MIN_WIDTH
   const minH = config.window.minHeight ?? MIN_HEIGHT
 
-  const handleMouseDownTitlebar = useCallback(
-    (e: React.MouseEvent) => {
-      if ((e.target as HTMLElement).closest('[data-window-button]')) return
-      e.preventDefault()
+  const titlebarDrag = useDrag({
+    shouldStart: (e) => {
+      if ((e.target as HTMLElement).closest('[data-window-button]')) return false
       focusWindow(id)
-
-      if (isMaximized) return
-
-      dragRef.current = {
-        startX: e.clientX,
-        startY: e.clientY,
-        winX: position.x,
-        winY: position.y,
-      }
-      setIsDragging(true)
-      useCursorStore.getState().setCursorType('grabbing')
-
-      const handleMouseMove = (me: MouseEvent) => {
-        const dx = me.clientX - dragRef.current.startX
-        const dy = me.clientY - dragRef.current.startY
-        const newY = Math.max(0, dragRef.current.winY + dy)
-        moveWindow(id, {
-          x: dragRef.current.winX + dx,
-          y: newY,
-        })
-      }
-
-      const handleMouseUp = () => {
-        setIsDragging(false)
-        useCursorStore.getState().resetCursor()
-        document.removeEventListener('mousemove', handleMouseMove)
-        document.removeEventListener('mouseup', handleMouseUp)
-      }
-
-      document.addEventListener('mousemove', handleMouseMove)
-      document.addEventListener('mouseup', handleMouseUp)
+      if (isMaximized) return false
+      dragStartRef.current = { x: position.x, y: position.y }
+      return true
     },
-    [id, position, isMaximized, focusWindow, moveWindow]
-  )
+    onDragStart: () => {
+      useCursorStore.getState().setCursorType('grabbing')
+    },
+    onDragMove: (dx, dy) => {
+      const newY = Math.max(0, dragStartRef.current.y + dy)
+      moveWindow(id, { x: dragStartRef.current.x + dx, y: newY })
+    },
+    onDragEnd: () => {
+      useCursorStore.getState().resetCursor()
+    },
+  })
 
   const handleResizeStart = useCallback(
     (e: React.MouseEvent, direction: string) => {
@@ -207,7 +187,7 @@ const Window = ({ windowState }: WindowProps) => {
           isFocused
             ? 'ring-1 ring-white/15'
             : 'ring-1 ring-white/5',
-          isDragging && 'cursor-grabbing',
+          titlebarDrag.isDragging && 'cursor-grabbing',
         )}
         style={{
           ...computedStyle,
@@ -227,7 +207,7 @@ const Window = ({ windowState }: WindowProps) => {
               'bg-[#2A2A3E]',
               !isFocused && 'bg-[#252535]',
             )}
-            onMouseDown={handleMouseDownTitlebar}
+            onMouseDown={titlebarDrag.handleMouseDown}
             onDoubleClick={handleDoubleClickTitlebar}
           >
             {/* Traffic lights */}

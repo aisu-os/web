@@ -1,8 +1,10 @@
-import { useRef, useCallback, useState, useEffect } from 'react'
+import { useRef, useCallback, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { cn } from '@/lib/cn'
 import { useDesktopStore } from '@/stores/use-desktop-store'
 import { useWindowStore } from '@/stores/use-window-store'
+import { useDrag } from '@/hooks/use-drag'
+import { DOUBLE_CLICK_DELAY } from '@/lib/constants'
 import { DESKTOP_ICON_MAP } from './desktop-icons'
 import { DESKTOP_ICON_SIZE } from './desktop.constants'
 import InlineEditInput from '@/components/ui/InlineEditInput'
@@ -33,15 +35,11 @@ const DesktopItem = ({ item }: DesktopItemProps) => {
 
   const IconComponent = DESKTOP_ICON_MAP[item.icon] ?? DESKTOP_ICON_MAP['text-file']
 
-  const [isDragging, setIsDragging] = useState(false)
-  const dragStartRef = useRef({ x: 0, y: 0, itemX: 0, itemY: 0 })
-  const hasDraggedRef = useRef(false)
-  const dragCleanupRef = useRef<(() => void) | null>(null)
+  const dragStartPosRef = useRef({ x: 0, y: 0 })
   const clickTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
     return () => {
-      dragCleanupRef.current?.()
       if (clickTimerRef.current) clearTimeout(clickTimerRef.current)
     }
   }, [])
@@ -53,51 +51,29 @@ const DesktopItem = ({ item }: DesktopItemProps) => {
     }
   }, [item.name, item.type, openWindow])
 
-  const handleMouseDown = useCallback((e: React.MouseEvent) => {
-    if (e.button !== 0 || isEditing) return
-    e.stopPropagation()
+  const itemDrag = useDrag({
+    threshold: 3,
+    shouldStart: (e) => {
+      if (isEditing) return false
+      e.stopPropagation()
 
-    dragCleanupRef.current?.()
-
-    const additive = e.metaKey || e.ctrlKey
-    if (!isSelected) {
-      selectItem(item.id, additive)
-    } else if (additive) {
-      selectItem(item.id, true)
-    }
-
-    dragStartRef.current = {
-      x: e.clientX,
-      y: e.clientY,
-      itemX: item.position.x,
-      itemY: item.position.y,
-    }
-    hasDraggedRef.current = false
-
-    const handleMouseMove = (moveEvent: MouseEvent) => {
-      const dx = moveEvent.clientX - dragStartRef.current.x
-      const dy = moveEvent.clientY - dragStartRef.current.y
-
-      if (!hasDraggedRef.current && (Math.abs(dx) > 3 || Math.abs(dy) > 3)) {
-        hasDraggedRef.current = true
-        setIsDragging(true)
+      const additive = e.metaKey || e.ctrlKey
+      if (!isSelected) {
+        selectItem(item.id, additive)
+      } else if (additive) {
+        selectItem(item.id, true)
       }
 
-      if (hasDraggedRef.current) {
-        updateItemPosition(item.id, {
-          x: dragStartRef.current.itemX + dx,
-          y: dragStartRef.current.itemY + dy,
-        })
-      }
-    }
-
-    const handleMouseUp = () => {
-      const wasDragged = hasDraggedRef.current
-      cleanup()
-      setIsDragging(false)
-      hasDraggedRef.current = false
-
-      // Double-click detection (faqat drag bo'lmaganda)
+      dragStartPosRef.current = { x: item.position.x, y: item.position.y }
+      return true
+    },
+    onDragMove: (dx, dy) => {
+      updateItemPosition(item.id, {
+        x: dragStartPosRef.current.x + dx,
+        y: dragStartPosRef.current.y + dy,
+      })
+    },
+    onDragEnd: (wasDragged) => {
       if (!wasDragged) {
         if (clickTimerRef.current) {
           clearTimeout(clickTimerRef.current)
@@ -106,21 +82,11 @@ const DesktopItem = ({ item }: DesktopItemProps) => {
         } else {
           clickTimerRef.current = setTimeout(() => {
             clickTimerRef.current = null
-          }, 300)
+          }, DOUBLE_CLICK_DELAY)
         }
       }
-    }
-
-    const cleanup = () => {
-      document.removeEventListener('mousemove', handleMouseMove)
-      document.removeEventListener('mouseup', handleMouseUp)
-      dragCleanupRef.current = null
-    }
-
-    document.addEventListener('mousemove', handleMouseMove)
-    document.addEventListener('mouseup', handleMouseUp)
-    dragCleanupRef.current = cleanup
-  }, [item.id, item.position, isSelected, isEditing, selectItem, updateItemPosition, handleOpenItem])
+    },
+  })
 
   const handleContextMenu = useCallback((e: React.MouseEvent) => {
     if (isEditing) return
@@ -140,13 +106,13 @@ const DesktopItem = ({ item }: DesktopItemProps) => {
         'absolute flex flex-col items-center w-[80px] cursor-default select-none',
         'rounded-lg p-1',
         isSelected && 'bg-white/10',
-        isDragging && 'opacity-80 z-50',
+        itemDrag.isDragging && 'opacity-80 z-50',
       )}
       style={{
         left: item.position.x,
         top: item.position.y,
       }}
-      onMouseDown={handleMouseDown}
+      onMouseDown={itemDrag.handleMouseDown}
       onContextMenu={handleContextMenu}
       whileTap={isEditing ? undefined : { scale: 0.95 }}
       transition={{ duration: 0.1 }}

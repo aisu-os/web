@@ -1,8 +1,14 @@
 import { useEffect, useRef, type RefObject } from 'react'
 
+interface UseClickOutsideOptions {
+  onContextMenu?: boolean
+  onEscape?: boolean
+}
+
 export function useClickOutside<T extends HTMLElement>(
   ref: RefObject<T | null>,
   callback: () => void,
+  options?: UseClickOutsideOptions,
 ) {
   const callbackRef = useRef(callback)
 
@@ -17,7 +23,28 @@ export function useClickOutside<T extends HTMLElement>(
       }
     }
 
-    document.addEventListener('mousedown', handleMouseDown)
-    return () => document.removeEventListener('mousedown', handleMouseDown)
-  }, [ref])
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === 'Escape') callbackRef.current()
+    }
+
+    requestAnimationFrame(() => {
+      document.addEventListener('mousedown', handleMouseDown)
+      if (options?.onContextMenu) {
+        document.addEventListener('contextmenu', handleMouseDown)
+      }
+      if (options?.onEscape) {
+        document.addEventListener('keydown', handleKeyDown)
+      }
+    })
+
+    return () => {
+      document.removeEventListener('mousedown', handleMouseDown)
+      if (options?.onContextMenu) {
+        document.removeEventListener('contextmenu', handleMouseDown)
+      }
+      if (options?.onEscape) {
+        document.removeEventListener('keydown', handleKeyDown)
+      }
+    }
+  }, [ref, options?.onContextMenu, options?.onEscape])
 }

@@ -1,8 +1,11 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { cn } from '@/lib/cn'
+import { Z_INDEX } from '@/lib/constants'
 import { useBattery } from '@/hooks/use-battery'
+import { useClickOutside } from '@/hooks/use-click-outside'
+import InfoRow from './InfoRow'
 
 const BatteryIndicator = () => {
   const { level, charging, chargingTime, dischargingTime, isSupported } = useBattery()
@@ -10,29 +13,7 @@ const BatteryIndicator = () => {
   const containerRef = useRef<HTMLDivElement>(null)
   const [position, setPosition] = useState({ top: 0, right: 0 })
 
-  useEffect(() => {
-    if (!isOpen) return
-
-    const handleClickOutside = (e: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
-        setIsOpen(false)
-      }
-    }
-
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setIsOpen(false)
-    }
-
-    requestAnimationFrame(() => {
-      document.addEventListener('mousedown', handleClickOutside)
-      document.addEventListener('keydown', handleKeyDown)
-    })
-
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside)
-      document.removeEventListener('keydown', handleKeyDown)
-    }
-  }, [isOpen])
+  useClickOutside(containerRef, () => setIsOpen(false), { onEscape: true })
 
   const handleClick = () => {
     if (!isOpen && containerRef.current) {
@@ -149,9 +130,9 @@ const BatteryIndicator = () => {
           {isOpen && (
             <motion.div
               onMouseDown={(e) => e.stopPropagation()}
-              style={{ top: position.top, right: position.right }}
+              style={{ top: position.top, right: position.right, zIndex: Z_INDEX.dropdown }}
               className={cn(
-                'fixed z-[9999]',
+                'fixed',
                 'w-[264px]',
                 'rounded-xl',
                 'bg-black/30 backdrop-blur-2xl backdrop-saturate-150',
@@ -229,20 +210,5 @@ const BatteryIndicator = () => {
     </div>
   )
 }
-
-const InfoRow = ({
-  label,
-  value,
-  valueColor = 'text-white/70',
-}: {
-  label: string
-  value: string
-  valueColor?: string
-}) => (
-  <div className="flex items-center justify-between">
-    <span className="text-[12px] text-white/50">{label}</span>
-    <span className={cn('text-[12px]', valueColor)}>{value}</span>
-  </div>
-)
 
 export default BatteryIndicator

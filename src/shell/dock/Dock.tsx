@@ -1,5 +1,6 @@
 import { motion, useMotionValue, AnimatePresence } from 'framer-motion'
 import { cn } from '@/lib/cn'
+import { Z_INDEX } from '@/lib/constants'
 import {
   DOCK_ITEMS,
   DOCK_SETTINGS_ITEM,
@@ -42,7 +43,7 @@ const Dock = ({ isVisible }: DockProps) => {
         delay: isVisible ? DOCK_ENTRANCE_DELAY : 0,
       }}
       className={cn(
-        'fixed left-1/2 -translate-x-1/2 z-[9999]',
+        'fixed left-1/2 -translate-x-1/2',
         'flex items-end',
         'bg-black/20 backdrop-blur-xl backdrop-saturate-150',
         'rounded-2xl',
@@ -50,6 +51,7 @@ const Dock = ({ isVisible }: DockProps) => {
         'shadow-xl shadow-black/20',
       )}
       style={{
+        zIndex: Z_INDEX.dock,
         bottom: DOCK_MARGIN_BOTTOM,
         paddingLeft: DOCK_PADDING_X,
         paddingRight: DOCK_PADDING_X,
