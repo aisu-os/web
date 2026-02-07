@@ -66,3 +66,8 @@ export type {
   ProcessStatus,
   ProcessState,
 } from './process'
+
+export type {
+  UserProfile,
+  AuthPhase,
+} from './auth'

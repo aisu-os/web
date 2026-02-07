@@ -1,0 +1,411 @@
+/* ── CSS Custom Properties (ice palette — boot-screen.css bilan mos) ── */
+.login-screen {
+  --ice-200: #BAE6FD;
+  --ice-300: #7DD3FC;
+  --ice-400: #38BDF8;
+  --ice-500: #0EA5E9;
+  --ice-600: #0284C7;
+}
+
+/* ══════════════════════════════════════
+   LOGIN SCREEN — LAYOUT
+   ══════════════════════════════════════ */
+
+.login-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 9998;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Quicksand', sans-serif;
+  overflow: hidden;
+  animation: loginFadeIn 0.6s ease-out forwards;
+}
+
+.login-screen--fading {
+  animation: loginFadeOut 0.8s ease-in forwards;
+}
+
+/* ── Background ── */
+.login-bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+.login-bg__image {
+  position: absolute;
+  inset: -20px;
+  filter: blur(30px) saturate(1.2);
+  transform: scale(1.1);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.login-bg__overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+}
+
+/* Login → Desktop o'tishda blur kamayadi */
+.login-screen--fading .login-bg__image {
+  animation: loginBlurReduce 0.8s ease-out forwards;
+}
+
+.login-screen--fading .login-bg__overlay {
+  animation: loginOverlayFade 0.8s ease-out forwards;
+}
+
+/* ── Clock ── */
+.login-clock {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  padding-top: 80px;
+  text-align: center;
+  z-index: 1;
+  opacity: 0;
+  animation: loginClockEnter 0.8s cubic-bezier(0.22, 1, 0.36, 1) 0.3s forwards;
+}
+
+.login-clock__time {
+  font-family: 'Quicksand', sans-serif;
+  font-size: 80px;
+  font-weight: 300;
+  color: white;
+  line-height: 1;
+  letter-spacing: -2px;
+  text-shadow: 0 2px 20px rgba(0, 0, 0, 0.3);
+}
+
+.login-clock__date {
+  font-family: 'Nunito', sans-serif;
+  font-size: 18px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.7);
+  margin-top: 8px;
+  text-shadow: 0 1px 10px rgba(0, 0, 0, 0.3);
+}
+
+/* ── Content (avatar + ism + parol) ── */
+.login-content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+}
+
+.login-screen--fading .login-content {
+  animation: loginContentExit 0.6s ease-in forwards;
+}
+
+.login-screen--fading .login-clock {
+  animation: loginClockExit 0.5s ease-in forwards;
+}
+
+/* ── Avatar ── */
+.login-avatar {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  overflow: hidden;
+  opacity: 0;
+  animation: loginAvatarEnter 0.8s cubic-bezier(0.22, 1, 0.36, 1) 0.5s forwards;
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.4),
+    0 0 0 2px rgba(255, 255, 255, 0.15);
+}
+
+.login-avatar--success {
+  animation: loginSuccessGlow 0.6s ease-out forwards;
+}
+
+.login-avatar__placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, var(--ice-400), var(--ice-600));
+  font-family: 'Quicksand', sans-serif;
+  font-size: 48px;
+  font-weight: 600;
+  color: white;
+  user-select: none;
+}
+
+.login-avatar__image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* ── Username ── */
+.login-username {
+  margin-top: 16px;
+  font-family: 'Quicksand', sans-serif;
+  font-size: 22px;
+  font-weight: 600;
+  color: white;
+  text-shadow: 0 1px 10px rgba(0, 0, 0, 0.3);
+  opacity: 0;
+  animation: loginFieldSlideUp 0.6s cubic-bezier(0.22, 1, 0.36, 1) 0.7s forwards;
+}
+
+/* ── Password Field ── */
+.login-password {
+  margin-top: 16px;
+  position: relative;
+  opacity: 0;
+  animation: loginFieldSlideUp 0.6s cubic-bezier(0.22, 1, 0.36, 1) 0.9s forwards;
+}
+
+.login-password--shake {
+  animation: loginShake 0.5s ease-out;
+}
+
+.login-password__wrapper {
+  display: flex;
+  align-items: center;
+  width: 260px;
+  height: 40px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  overflow: hidden;
+}
+
+.login-password__wrapper:focus-within {
+  border-color: rgba(255, 255, 255, 0.25);
+  box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.15);
+}
+
+.login-password--error .login-password__wrapper {
+  border-color: rgba(239, 68, 68, 0.5);
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+.login-password__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  flex-shrink: 0;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.login-password__input {
+  flex: 1;
+  height: 100%;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: white;
+  font-family: 'Nunito', sans-serif;
+  font-size: 14px;
+  padding-right: 8px;
+}
+
+.login-password__input::placeholder {
+  color: rgba(255, 255, 255, 0.35);
+}
+
+.login-password__submit {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  margin-right: 4px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  cursor: pointer;
+  color: rgba(255, 255, 255, 0.6);
+  transition: background 0.15s ease, color 0.15s ease, opacity 0.15s ease, transform 0.15s ease;
+  flex-shrink: 0;
+  opacity: 0;
+  transform: scale(0.8);
+  pointer-events: none;
+}
+
+.login-password__submit--visible {
+  opacity: 1;
+  transform: scale(1);
+  pointer-events: auto;
+}
+
+.login-password__submit:hover {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+}
+
+.login-password__submit:active {
+  transform: scale(0.9);
+}
+
+/* ── Error Text ── */
+.login-error {
+  margin-top: 12px;
+  font-family: 'Nunito', sans-serif;
+  font-size: 12px;
+  color: #FCA5A5;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+  opacity: 0;
+  animation: loginFieldSlideUp 0.3s ease-out forwards;
+}
+
+/* ── Footer ── */
+.login-footer {
+  position: absolute;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: 'Nunito', sans-serif;
+  font-size: 10px;
+  color: rgba(148, 163, 184, 0.4);
+  letter-spacing: 2px;
+  z-index: 1;
+}
+
+/* ══════════════════════════════════════
+   KEYFRAMES
+   ══════════════════════════════════════ */
+
+@keyframes loginFadeIn {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes loginFadeOut {
+  0% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    pointer-events: none;
+  }
+}
+
+@keyframes loginClockEnter {
+  0% {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes loginClockExit {
+  0% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+}
+
+@keyframes loginAvatarEnter {
+  0% {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes loginFieldSlideUp {
+  0% {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes loginContentExit {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.04);
+  }
+}
+
+@keyframes loginShake {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  10%, 50%, 90% {
+    transform: translateX(-6px);
+  }
+  30%, 70% {
+    transform: translateX(6px);
+  }
+}
+
+@keyframes loginSuccessGlow {
+  0% {
+    box-shadow:
+      0 8px 32px rgba(0, 0, 0, 0.4),
+      0 0 0 2px rgba(255, 255, 255, 0.15);
+  }
+  50% {
+    box-shadow:
+      0 8px 32px rgba(0, 0, 0, 0.4),
+      0 0 0 2px rgba(14, 165, 233, 0.6),
+      0 0 30px rgba(14, 165, 233, 0.3);
+  }
+  100% {
+    box-shadow:
+      0 8px 32px rgba(0, 0, 0, 0.4),
+      0 0 0 2px rgba(14, 165, 233, 0.3),
+      0 0 15px rgba(14, 165, 233, 0.15);
+  }
+}
+
+@keyframes loginBlurReduce {
+  0% {
+    filter: blur(30px) saturate(1.2);
+  }
+  100% {
+    filter: blur(0px) saturate(1);
+  }
+}
+
+@keyframes loginOverlayFade {
+  0% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
