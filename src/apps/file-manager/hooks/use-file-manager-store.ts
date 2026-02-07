@@ -1,6 +1,8 @@
 import { createContext, useContext } from 'react'
 import { create, useStore, type StoreApi } from 'zustand'
+import type { FileType } from '@/types'
 import type { ViewMode, SortKey, SortDirection } from '../file-manager.types'
+import { useFileSystemStore } from '@/stores/use-file-system-store'
 
 interface ContextMenuState {
   isOpen: boolean
@@ -20,6 +22,8 @@ interface FileManagerState {
   isSidebarVisible: boolean
   columnSelections: string[]
   contextMenu: ContextMenuState
+  editingPath: string | null
+  editingMode: 'rename' | 'create' | null
 }
 
 interface FileManagerActions {
@@ -38,6 +42,10 @@ interface FileManagerActions {
   setColumnSelection: (level: number, path: string) => void
   openContextMenu: (x: number, y: number, targetPath?: string) => void
   closeContextMenu: () => void
+  startCreating: (type: FileType) => void
+  startRenaming: (path: string) => void
+  commitEditing: (name: string) => void
+  cancelEditing: () => void
 }
 
 export type FileManagerStoreApi = StoreApi<FileManagerState & FileManagerActions>
@@ -58,6 +66,8 @@ export function createFileManagerStore(initialPath = '/Desktop'): FileManagerSto
       isOpen: false,
       position: { x: 0, y: 0 },
     },
+    editingPath: null,
+    editingMode: null,
 
     navigateTo: (path) => {
       const { currentPath } = get()
@@ -178,6 +188,80 @@ export function createFileManagerStore(initialPath = '/Desktop'): FileManagerSto
           position: { x: 0, y: 0 },
         },
       })
+    },
+
+    startCreating: (type) => {
+      const { currentPath } = get()
+      const fs = useFileSystemStore.getState()
+      const baseName = type === 'directory' ? 'untitled folder' : 'untitled'
+      const uniqueName = fs.generateUniqueName(currentPath, baseName)
+      const newNode = fs.createNode(currentPath, uniqueName, type)
+      if (!newNode) return
+
+      set({
+        editingPath: newNode.path,
+        editingMode: 'create',
+        selectedPaths: [newNode.path],
+      })
+    },
+
+    startRenaming: (path) => {
+      set({
+        editingPath: path,
+        editingMode: 'rename',
+        selectedPaths: [path],
+      })
+    },
+
+    commitEditing: (name) => {
+      const { editingPath, editingMode } = get()
+      if (!editingPath) return
+
+      const fs = useFileSystemStore.getState()
+      const trimmedName = name.trim()
+
+      if (!trimmedName) {
+        if (editingMode === 'create') {
+          fs.deleteNode(editingPath)
+          set({ editingPath: null, editingMode: null, selectedPaths: [] })
+        } else {
+          set({ editingPath: null, editingMode: null })
+        }
+        return
+      }
+
+      const node = fs.getNode(editingPath)
+      if (!node) {
+        set({ editingPath: null, editingMode: null })
+        return
+      }
+
+      if (node.name === trimmedName) {
+        set({ editingPath: null, editingMode: null })
+        return
+      }
+
+      const result = fs.renameNode(editingPath, trimmedName)
+      if (result) {
+        set({ selectedPaths: [result.path], editingPath: null, editingMode: null })
+      } else {
+        // Nom takrorlangan — eski holatni saqlaymiz
+        if (editingMode === 'create') {
+          set({ editingPath: null, editingMode: null })
+        } else {
+          set({ editingPath: null, editingMode: null })
+        }
+      }
+    },
+
+    cancelEditing: () => {
+      const { editingPath, editingMode } = get()
+      if (editingMode === 'create' && editingPath) {
+        useFileSystemStore.getState().deleteNode(editingPath)
+        set({ editingPath: null, editingMode: null, selectedPaths: [] })
+      } else {
+        set({ editingPath: null, editingMode: null })
+      }
     },
   }))
 }

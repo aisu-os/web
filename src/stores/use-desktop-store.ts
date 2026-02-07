@@ -1,6 +1,7 @@
 import { create } from 'zustand'
-import type { DesktopItem } from '@/types'
+import type { DesktopItem, FileType } from '@/types'
 import { DEFAULT_DESKTOP_ITEMS } from '@/shell/desktop/desktop.constants'
+import { useFileSystemStore } from '@/stores/use-file-system-store'
 
 interface ContextMenuState {
   isOpen: boolean
@@ -8,9 +9,44 @@ interface ContextMenuState {
   targetItemId?: string
 }
 
+function getIconForType(type: FileType): DesktopItem['icon'] {
+  return type === 'directory' ? 'folder' : 'generic-file'
+}
+
+function findFreePosition(items: DesktopItem[]): { x: number; y: number } {
+  const occupied = new Set(items.map((i) => `${i.position.x},${i.position.y}`))
+  const startX = 24
+  const startY = 48
+  const stepY = 104
+
+  let x = startX
+  let y = startY
+  while (occupied.has(`${x},${y}`)) {
+    y += stepY
+    if (y > 800) {
+      y = startY
+      x += 100
+    }
+  }
+  return { x, y }
+}
+
+function generateUniqueDesktopName(items: DesktopItem[], baseName: string): string {
+  const names = new Set(items.map((i) => i.name.toLowerCase()))
+  if (!names.has(baseName.toLowerCase())) return baseName
+  let counter = 2
+  while (names.has(`${baseName} ${counter}`.toLowerCase())) {
+    counter++
+  }
+  return `${baseName} ${counter}`
+}
+
 interface DesktopStore {
   items: DesktopItem[]
   updateItemPosition: (id: string, position: { x: number; y: number }) => void
+  addItem: (item: DesktopItem) => void
+  removeItem: (id: string) => void
+  renameItem: (id: string, newName: string) => void
 
   selectedIds: string[]
   selectItem: (id: string, additive?: boolean) => void
@@ -21,15 +57,38 @@ interface DesktopStore {
   contextMenu: ContextMenuState
   openContextMenu: (x: number, y: number, targetItemId?: string) => void
   closeContextMenu: () => void
+
+  editingItemId: string | null
+  editingMode: 'rename' | 'create' | null
+  startCreating: (type: FileType) => void
+  startRenaming: (id: string) => void
+  commitEditing: (name: string) => void
+  cancelEditing: () => void
 }
 
-export const useDesktopStore = create<DesktopStore>((set) => ({
+export const useDesktopStore = create<DesktopStore>((set, get) => ({
   items: DEFAULT_DESKTOP_ITEMS,
 
   updateItemPosition: (id, position) =>
     set((state) => ({
       items: state.items.map((item) =>
         item.id === id ? { ...item, position } : item
+      ),
+    })),
+
+  addItem: (item) =>
+    set((state) => ({ items: [...state.items, item] })),
+
+  removeItem: (id) =>
+    set((state) => ({
+      items: state.items.filter((i) => i.id !== id),
+      selectedIds: state.selectedIds.filter((sid) => sid !== id),
+    })),
+
+  renameItem: (id, newName) =>
+    set((state) => ({
+      items: state.items.map((item) =>
+        item.id === id ? { ...item, name: newName } : item
       ),
     })),
 
@@ -67,4 +126,116 @@ export const useDesktopStore = create<DesktopStore>((set) => ({
     set({
       contextMenu: { isOpen: false, position: { x: 0, y: 0 }, targetItemId: undefined },
     }),
+
+  editingItemId: null,
+  editingMode: null,
+
+  startCreating: (type) => {
+    const { items } = get()
+    const baseName = type === 'directory' ? 'untitled folder' : 'untitled'
+    const uniqueName = generateUniqueDesktopName(items, baseName)
+    const position = findFreePosition(items)
+
+    const newItem: DesktopItem = {
+      id: `desktop-${Date.now()}`,
+      name: uniqueName,
+      type,
+      icon: getIconForType(type),
+      position,
+    }
+
+    // File system'da ham yaratish
+    const fs = useFileSystemStore.getState()
+    fs.createNode('/Desktop', uniqueName, type)
+
+    set((state) => ({
+      items: [...state.items, newItem],
+      editingItemId: newItem.id,
+      editingMode: 'create',
+      selectedIds: [newItem.id],
+    }))
+  },
+
+  startRenaming: (id) => {
+    set({
+      editingItemId: id,
+      editingMode: 'rename',
+      selectedIds: [id],
+    })
+  },
+
+  commitEditing: (name) => {
+    const { editingItemId, editingMode, items } = get()
+    if (!editingItemId) return
+
+    const trimmedName = name.trim()
+    const item = items.find((i) => i.id === editingItemId)
+    if (!item) {
+      set({ editingItemId: null, editingMode: null })
+      return
+    }
+
+    if (!trimmedName) {
+      if (editingMode === 'create') {
+        // Bo'sh nom — yaratishni bekor qilish
+        const fs = useFileSystemStore.getState()
+        const fsPath = `/Desktop/${item.name}`
+        fs.deleteNode(fsPath)
+        set((state) => ({
+          items: state.items.filter((i) => i.id !== editingItemId),
+          editingItemId: null,
+          editingMode: null,
+          selectedIds: [],
+        }))
+      } else {
+        set({ editingItemId: null, editingMode: null })
+      }
+      return
+    }
+
+    if (item.name === trimmedName) {
+      set({ editingItemId: null, editingMode: null })
+      return
+    }
+
+    // Nom takrorlanmaganligini tekshirish
+    const siblings = items.filter((i) => i.id !== editingItemId)
+    if (siblings.some((i) => i.name.toLowerCase() === trimmedName.toLowerCase())) {
+      // Nom takrorlangan — editingni tugatish, o'zgartirmaslik
+      set({ editingItemId: null, editingMode: null })
+      return
+    }
+
+    // File system'da ham rename
+    const fs = useFileSystemStore.getState()
+    const oldPath = `/Desktop/${item.name}`
+    fs.renameNode(oldPath, trimmedName)
+
+    set((state) => ({
+      items: state.items.map((i) =>
+        i.id === editingItemId ? { ...i, name: trimmedName } : i
+      ),
+      editingItemId: null,
+      editingMode: null,
+    }))
+  },
+
+  cancelEditing: () => {
+    const { editingItemId, editingMode, items } = get()
+    if (editingMode === 'create' && editingItemId) {
+      const item = items.find((i) => i.id === editingItemId)
+      if (item) {
+        const fs = useFileSystemStore.getState()
+        fs.deleteNode(`/Desktop/${item.name}`)
+      }
+      set((state) => ({
+        items: state.items.filter((i) => i.id !== editingItemId),
+        editingItemId: null,
+        editingMode: null,
+        selectedIds: [],
+      }))
+    } else {
+      set({ editingItemId: null, editingMode: null })
+    }
+  },
 }))

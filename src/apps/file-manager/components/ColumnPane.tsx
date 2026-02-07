@@ -14,6 +14,9 @@ const ColumnPane = ({ items, level, selectedPath }: ColumnPaneProps) => {
   const setColumnSelection = useFileManagerStore((s) => s.setColumnSelection)
   const navigateTo = useFileManagerStore((s) => s.navigateTo)
   const openContextMenu = useFileManagerStore((s) => s.openContextMenu)
+  const editingPath = useFileManagerStore((s) => s.editingPath)
+  const commitEditing = useFileManagerStore((s) => s.commitEditing)
+  const cancelEditing = useFileManagerStore((s) => s.cancelEditing)
 
   const handleSelect = (path: string, additive: boolean) => {
     selectItem(path, additive)
@@ -48,9 +51,12 @@ const ColumnPane = ({ items, level, selectedPath }: ColumnPaneProps) => {
           node={item}
           variant="compact"
           isSelected={item.path === selectedPath}
+          isEditing={item.path === editingPath}
           onSelect={handleSelect}
           onOpen={handleOpen}
           onContextMenu={handleContextMenu}
+          onCommitEdit={commitEditing}
+          onCancelEdit={cancelEditing}
         />
       ))}
     </div>

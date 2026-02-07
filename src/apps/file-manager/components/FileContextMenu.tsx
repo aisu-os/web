@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect, useLayoutEffect } from 'react'
+import { useRef, useState, useEffect, useLayoutEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { cn } from '@/lib/cn'
 import { useFileManagerStore } from '../hooks/use-file-manager-store'
@@ -12,6 +12,9 @@ import {
 const FileContextMenu = () => {
   const contextMenu = useFileManagerStore((s) => s.contextMenu)
   const closeContextMenu = useFileManagerStore((s) => s.closeContextMenu)
+  const startCreating = useFileManagerStore((s) => s.startCreating)
+  const startRenaming = useFileManagerStore((s) => s.startRenaming)
+  const navigateTo = useFileManagerStore((s) => s.navigateTo)
   const menuRef = useRef<HTMLDivElement>(null)
   const [adjustedPosition, setAdjustedPosition] = useState(contextMenu.position)
   const { getNode } = useFileSystem()
@@ -61,6 +64,32 @@ const FileContextMenu = () => {
     setAdjustedPosition({ x, y })
   }, [contextMenu.isOpen, contextMenu.position])
 
+  const handleAction = useCallback(
+    (action: string | undefined) => {
+      const targetPath = contextMenu.targetPath
+      closeContextMenu()
+
+      switch (action) {
+        case 'new-folder':
+          startCreating('directory')
+          break
+        case 'new-file':
+          startCreating('file')
+          break
+        case 'rename':
+          if (targetPath) startRenaming(targetPath)
+          break
+        case 'open':
+          if (targetPath) {
+            const node = getNode(targetPath)
+            if (node?.type === 'directory') navigateTo(targetPath)
+          }
+          break
+      }
+    },
+    [contextMenu.targetPath, closeContextMenu, startCreating, startRenaming, navigateTo, getNode]
+  )
+
   let items = BACKGROUND_CONTEXT_MENU
   if (contextMenu.targetPath) {
     const node = getNode(contextMenu.targetPath)
@@ -100,7 +129,7 @@ const FileContextMenu = () => {
               <button
                 key={item.label}
                 disabled={item.disabled}
-                onClick={() => closeContextMenu()}
+                onClick={() => handleAction(item.action)}
                 className={cn(
                   'flex w-full items-center justify-between rounded px-3 py-[3px] text-[13px]',
                   'text-left tracking-wide outline-none',

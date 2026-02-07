@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useMemo, useEffect } from 'react'
 import { cn } from '@/lib/cn'
 import {
   createFileManagerStore,
@@ -19,6 +19,29 @@ interface FileManagerProps {
 const FileManagerInner = () => {
   const isSidebarVisible = useFileManagerStore((s) => s.isSidebarVisible)
   const closeContextMenu = useFileManagerStore((s) => s.closeContextMenu)
+  const startCreating = useFileManagerStore((s) => s.startCreating)
+  const startRenaming = useFileManagerStore((s) => s.startRenaming)
+  const selectedPaths = useFileManagerStore((s) => s.selectedPaths)
+  const editingPath = useFileManagerStore((s) => s.editingPath)
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // ⇧⌘N — New Folder
+      if (e.metaKey && e.shiftKey && e.key === 'N') {
+        e.preventDefault()
+        startCreating('directory')
+        return
+      }
+      // Enter — Rename selected item (macOS Finder behavior)
+      if (e.key === 'Enter' && selectedPaths.length === 1 && !editingPath) {
+        e.preventDefault()
+        startRenaming(selectedPaths[0])
+        return
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [selectedPaths, editingPath, startCreating, startRenaming])
 
   return (
     <div

@@ -2,15 +2,26 @@ import { useRef, useState, useEffect, useCallback, useLayoutEffect } from 'react
 import { motion, AnimatePresence } from 'framer-motion'
 import { cn } from '@/lib/cn'
 import { useDesktopStore } from '@/stores/use-desktop-store'
+import { useWindowStore } from '@/stores/use-window-store'
 import {
   DESKTOP_CONTEXT_MENU_ITEMS,
   ITEM_CONTEXT_MENU_ITEMS,
 } from './desktop.constants'
 
+const DESKTOP_PATH_MAP: Record<string, string> = {
+  'Projects': '/Desktop/Projects',
+  'notes.txt': '/Desktop/notes.txt',
+  'screenshot.png': '/Desktop/screenshot.png',
+}
+
 const ContextMenu = () => {
   const contextMenu = useDesktopStore((s) => s.contextMenu)
   const closeContextMenu = useDesktopStore((s) => s.closeContextMenu)
   const selectAll = useDesktopStore((s) => s.selectAll)
+  const startCreating = useDesktopStore((s) => s.startCreating)
+  const startRenaming = useDesktopStore((s) => s.startRenaming)
+  const items = useDesktopStore((s) => s.items)
+  const openWindow = useWindowStore((s) => s.openWindow)
   const menuRef = useRef<HTMLDivElement>(null)
   const [adjustedPosition, setAdjustedPosition] = useState(contextMenu.position)
 
@@ -61,16 +72,36 @@ const ContextMenu = () => {
 
   const handleAction = useCallback((action?: string) => {
     if (!action) return
+    const targetItemId = contextMenu.targetItemId
     closeContextMenu()
 
     switch (action) {
       case 'desktop:select-all':
         selectAll()
         break
+      case 'desktop:new-folder':
+        startCreating('directory')
+        break
+      case 'desktop:new-file':
+        startCreating('file')
+        break
+      case 'item:open': {
+        if (targetItemId) {
+          const item = items.find((i) => i.id === targetItemId)
+          if (item?.type === 'directory') {
+            const path = DESKTOP_PATH_MAP[item.name] ?? `/Desktop/${item.name}`
+            openWindow('file-manager', { initialPath: path })
+          }
+        }
+        break
+      }
+      case 'item:rename':
+        if (targetItemId) startRenaming(targetItemId)
+        break
     }
-  }, [closeContextMenu, selectAll])
+  }, [contextMenu.targetItemId, closeContextMenu, selectAll, startCreating, startRenaming, items, openWindow])
 
-  const items = contextMenu.targetItemId
+  const menuItems = contextMenu.targetItemId
     ? ITEM_CONTEXT_MENU_ITEMS
     : DESKTOP_CONTEXT_MENU_ITEMS
 
@@ -98,7 +129,7 @@ const ContextMenu = () => {
           exit={{ opacity: 0, scale: 0.92 }}
           transition={{ duration: 0.1 }}
         >
-          {items.map((item, index) =>
+          {menuItems.map((item, index) =>
             item.separator ? (
               <div key={`sep-${index}`} className="mx-2 my-1 h-px bg-white/10" />
             ) : (

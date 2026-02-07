@@ -365,11 +365,11 @@ export const SIDEBAR_TAGS: SidebarTag[] = [
 ]
 
 export const FILE_CONTEXT_MENU: ContextMenuItem[] = [
-  { label: 'Open' },
+  { label: 'Open', action: 'open' },
   { label: 'Open With...', disabled: true },
   { label: '', separator: true },
   { label: 'Get Info', shortcut: '⌘I' },
-  { label: 'Rename' },
+  { label: 'Rename', action: 'rename' },
   { label: '', separator: true },
   { label: 'Copy', shortcut: '⌘C' },
   { label: 'Duplicate', shortcut: '⌘D' },
@@ -378,11 +378,11 @@ export const FILE_CONTEXT_MENU: ContextMenuItem[] = [
 ]
 
 export const DIRECTORY_CONTEXT_MENU: ContextMenuItem[] = [
-  { label: 'Open' },
+  { label: 'Open', action: 'open' },
   { label: 'Open in New Tab', disabled: true },
   { label: '', separator: true },
   { label: 'Get Info', shortcut: '⌘I' },
-  { label: 'Rename' },
+  { label: 'Rename', action: 'rename' },
   { label: '', separator: true },
   { label: 'Copy', shortcut: '⌘C' },
   { label: 'Duplicate', shortcut: '⌘D' },
@@ -391,8 +391,8 @@ export const DIRECTORY_CONTEXT_MENU: ContextMenuItem[] = [
 ]
 
 export const BACKGROUND_CONTEXT_MENU: ContextMenuItem[] = [
-  { label: 'New Folder', shortcut: '⇧⌘N' },
-  { label: 'New File' },
+  { label: 'New Folder', shortcut: '⇧⌘N', action: 'new-folder' },
+  { label: 'New File', action: 'new-file' },
   { label: '', separator: true },
   { label: 'Get Info', shortcut: '⌘I' },
   { label: '', separator: true },

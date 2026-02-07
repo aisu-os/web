@@ -23,6 +23,9 @@ const ListView = ({ items }: ListViewProps) => {
   const sortKey = useFileManagerStore((s) => s.sortKey)
   const sortDirection = useFileManagerStore((s) => s.sortDirection)
   const setSortKey = useFileManagerStore((s) => s.setSortKey)
+  const editingPath = useFileManagerStore((s) => s.editingPath)
+  const commitEditing = useFileManagerStore((s) => s.commitEditing)
+  const cancelEditing = useFileManagerStore((s) => s.cancelEditing)
 
   const handleOpen = (path: string) => {
     const item = items.find((i) => i.path === path)
@@ -79,9 +82,12 @@ const ListView = ({ items }: ListViewProps) => {
               node={item}
               variant="list"
               isSelected={selectedPaths.includes(item.path)}
+              isEditing={item.path === editingPath}
               onSelect={selectItem}
               onOpen={handleOpen}
               onContextMenu={handleContextMenu}
+              onCommitEdit={commitEditing}
+              onCancelEdit={cancelEditing}
             />
           </div>
         ))}

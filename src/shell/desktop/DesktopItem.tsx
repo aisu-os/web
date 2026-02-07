@@ -5,6 +5,7 @@ import { useDesktopStore } from '@/stores/use-desktop-store'
 import { useWindowStore } from '@/stores/use-window-store'
 import { DESKTOP_ICON_MAP } from './desktop-icons'
 import { DESKTOP_ICON_SIZE } from './desktop.constants'
+import InlineEditInput from '@/components/ui/InlineEditInput'
 import type { DesktopItem as DesktopItemType } from '@/types'
 
 // Desktop item nomi -> mock file system yo'li mapping
@@ -24,6 +25,11 @@ const DesktopItem = ({ item }: DesktopItemProps) => {
   const updateItemPosition = useDesktopStore((s) => s.updateItemPosition)
   const openContextMenu = useDesktopStore((s) => s.openContextMenu)
   const openWindow = useWindowStore((s) => s.openWindow)
+  const editingItemId = useDesktopStore((s) => s.editingItemId)
+  const commitEditing = useDesktopStore((s) => s.commitEditing)
+  const cancelEditing = useDesktopStore((s) => s.cancelEditing)
+
+  const isEditing = editingItemId === item.id
 
   const IconComponent = DESKTOP_ICON_MAP[item.icon] ?? DESKTOP_ICON_MAP['text-file']
 
@@ -48,7 +54,7 @@ const DesktopItem = ({ item }: DesktopItemProps) => {
   }, [item.name, item.type, openWindow])
 
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
-    if (e.button !== 0) return
+    if (e.button !== 0 || isEditing) return
     e.stopPropagation()
 
     dragCleanupRef.current?.()
@@ -114,9 +120,10 @@ const DesktopItem = ({ item }: DesktopItemProps) => {
     document.addEventListener('mousemove', handleMouseMove)
     document.addEventListener('mouseup', handleMouseUp)
     dragCleanupRef.current = cleanup
-  }, [item.id, item.position, isSelected, selectItem, updateItemPosition, handleOpenItem])
+  }, [item.id, item.position, isSelected, isEditing, selectItem, updateItemPosition, handleOpenItem])
 
   const handleContextMenu = useCallback((e: React.MouseEvent) => {
+    if (isEditing) return
     e.preventDefault()
     e.stopPropagation()
 
@@ -125,7 +132,7 @@ const DesktopItem = ({ item }: DesktopItemProps) => {
     }
 
     openContextMenu(e.clientX, e.clientY, item.id)
-  }, [item.id, isSelected, selectItem, openContextMenu])
+  }, [item.id, isSelected, isEditing, selectItem, openContextMenu])
 
   return (
     <motion.div
@@ -141,7 +148,7 @@ const DesktopItem = ({ item }: DesktopItemProps) => {
       }}
       onMouseDown={handleMouseDown}
       onContextMenu={handleContextMenu}
-      whileTap={{ scale: 0.95 }}
+      whileTap={isEditing ? undefined : { scale: 0.95 }}
       transition={{ duration: 0.1 }}
       data-desktop-item-id={item.id}
     >
@@ -152,14 +159,23 @@ const DesktopItem = ({ item }: DesktopItemProps) => {
         <IconComponent size={DESKTOP_ICON_SIZE} />
       </div>
 
-      <span className={cn(
-        'mt-0.5 text-[11px] font-medium leading-tight text-center',
-        'max-w-[76px] truncate',
-        'text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]',
-        isSelected && 'bg-[#2463EB] text-white rounded px-1',
-      )}>
-        {item.name}
-      </span>
+      {isEditing ? (
+        <InlineEditInput
+          initialValue={item.name}
+          onCommit={commitEditing}
+          onCancel={cancelEditing}
+          className="mt-0.5 text-[11px] text-center w-full max-w-[76px]"
+        />
+      ) : (
+        <span className={cn(
+          'mt-0.5 text-[11px] font-medium leading-tight text-center',
+          'max-w-[76px] truncate',
+          'text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]',
+          isSelected && 'bg-[#2463EB] text-white rounded px-1',
+        )}>
+          {item.name}
+        </span>
+      )}
     </motion.div>
   )
 }

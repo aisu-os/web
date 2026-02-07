@@ -11,6 +11,9 @@ const IconView = ({ items }: IconViewProps) => {
   const selectItem = useFileManagerStore((s) => s.selectItem)
   const navigateTo = useFileManagerStore((s) => s.navigateTo)
   const openContextMenu = useFileManagerStore((s) => s.openContextMenu)
+  const editingPath = useFileManagerStore((s) => s.editingPath)
+  const commitEditing = useFileManagerStore((s) => s.commitEditing)
+  const cancelEditing = useFileManagerStore((s) => s.cancelEditing)
 
   const handleOpen = (path: string) => {
     const item = items.find((i) => i.path === path)
@@ -31,9 +34,12 @@ const IconView = ({ items }: IconViewProps) => {
           node={item}
           variant="icon"
           isSelected={selectedPaths.includes(item.path)}
+          isEditing={item.path === editingPath}
           onSelect={selectItem}
           onOpen={handleOpen}
           onContextMenu={handleContextMenu}
+          onCommitEdit={commitEditing}
+          onCancelEdit={cancelEditing}
         />
       ))}
     </div>
