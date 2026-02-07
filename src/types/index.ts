@@ -78,3 +78,8 @@ export type {
   CursorTheme,
   CursorThemeMeta,
 } from './cursor'
+
+export type {
+  BatteryManager,
+  BatteryState,
+} from './battery'
