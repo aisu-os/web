@@ -104,3 +104,10 @@ export type {
   DragSession,
   DropTargetRegistration,
 } from './drag-drop'
+
+export type {
+  NotificationType,
+  NotificationAction,
+  Notification,
+  NotificationInput,
+} from './notification'

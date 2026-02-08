@@ -10,6 +10,7 @@ export interface AppRegistryEntry {
 // Ilovalar config'lari qo'shilganda shu yerga import qilinadi
 import { fileManagerConfig } from './file-manager/config'
 import { imageViewerConfig } from './image-viewer/config'
+import { notificationDemoConfig } from './notification-demo/config'
 // import { aiChatConfig } from './ai-chat/config'
 // import { terminalConfig } from './terminal/config'
 // import { settingsConfig } from './settings/config'
@@ -24,6 +25,10 @@ export const appRegistry: Record<string, AppRegistryEntry> = {
   'image-viewer': {
     config: imageViewerConfig,
     component: lazy(() => import('./image-viewer/ImageViewer')),
+  },
+  'notification-demo': {
+    config: notificationDemoConfig,
+    component: lazy(() => import('./notification-demo/NotificationDemo')),
   },
   // Ilovalar implementatsiya qilinganda qo'shiladi:
   //

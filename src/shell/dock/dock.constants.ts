@@ -6,6 +6,7 @@ import {
   TextEditorIcon,
   ImageViewerIcon,
   AppMarketIcon,
+  NotificationDemoIcon,
   SettingsIcon,
 } from './dock-icons'
 
@@ -30,6 +31,7 @@ export const DOCK_ITEMS: DockItemConfig[] = [
   { id: 'text-editor', label: 'Text Editor', icon: TextEditorIcon },
   { id: 'image-viewer', label: 'Image Viewer', icon: ImageViewerIcon },
   { id: 'app-market', label: 'App Market', icon: AppMarketIcon },
+  { id: 'notification-demo', label: 'Notifications', icon: NotificationDemoIcon },
 ]
 
 export const DOCK_SETTINGS_ITEM: DockItemConfig = {

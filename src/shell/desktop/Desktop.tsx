@@ -14,6 +14,7 @@ import { useWindowStore } from '@/stores/use-window-store'
 import { useProcessStore } from '@/stores/use-process-store'
 import { useMenuBarStore } from '@/stores/use-menubar-store'
 import { appRegistry } from '@/apps/_registry'
+import { NotificationLayer } from '@/shell/notifications'
 import { useMarqueeSelection } from '@/hooks/use-marquee-selection'
 import { useDropTarget } from '@/hooks/use-drop-target'
 import { cn } from '@/lib/cn'
@@ -110,6 +111,7 @@ const Desktop = ({ isReady }: DesktopProps) => {
         <Dock isVisible={isReady} />
       </div>
 
+      <NotificationLayer />
       <ContextMenu />
       <AboutDialog />
       <GetInfoDialog />

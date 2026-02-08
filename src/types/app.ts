@@ -35,3 +35,4 @@ export type SystemAppId =
   | 'text-editor'
   | 'app-market'
   | 'image-viewer'
+  | 'notification-demo'

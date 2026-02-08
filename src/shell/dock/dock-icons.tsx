@@ -132,6 +132,31 @@ export const AppMarketIcon = ({ size = 48 }: IconProps) => {
   )
 }
 
+export const NotificationDemoIcon = ({ size = 48 }: IconProps) => {
+  const id = useId()
+  const gradId = `${id}-notifdemo`
+  return (
+    <svg width={size} height={size} viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id={gradId} x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#A78BFA" />
+          <stop offset="100%" stopColor="#7C3AED" />
+        </linearGradient>
+      </defs>
+      <path
+        d="M24 8C17.373 8 12 13.373 12 20V28L8 34H40L36 28V20C36 13.373 30.627 8 24 8Z"
+        stroke={`url(#${gradId})`}
+        strokeWidth="2"
+        fill={`url(#${gradId})`}
+        fillOpacity="0.12"
+        strokeLinejoin="round"
+      />
+      <path d="M20 34C20 36.2091 21.7909 38 24 38C26.2091 38 28 36.2091 28 34" stroke={`url(#${gradId})`} strokeWidth="2" strokeLinecap="round" />
+      <circle cx="34" cy="14" r="5" fill="#F87171" stroke="none" opacity="0.9" />
+    </svg>
+  )
+}
+
 export const SettingsIcon = ({ size = 48 }: IconProps) => {
   const id = useId()
   const gradId = `${id}-settings`

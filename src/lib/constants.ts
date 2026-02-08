@@ -4,6 +4,7 @@ export const Z_INDEX = {
   desktop: 0,
   desktopItems: 1,
   windows: 10,
+  notifications: 9997,
   aboutDialog: 9998,
   getInfoDialog: 9998,
   dock: 9999,
