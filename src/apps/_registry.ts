@@ -15,7 +15,7 @@ import { notificationDemoConfig } from './notification-demo/config'
 // import { terminalConfig } from './terminal/config'
 // import { settingsConfig } from './settings/config'
 import { textEditorConfig } from './text-editor/config'
-// import { appMarketConfig } from './app-market/config'
+import { appMarketConfig } from './app-market/config'
 
 export const appRegistry: Record<string, AppRegistryEntry> = {
   'file-manager': {
@@ -48,8 +48,8 @@ export const appRegistry: Record<string, AppRegistryEntry> = {
     config: textEditorConfig,
     component: lazy(() => import('./text-editor/TextEditor')),
   },
-  // 'app-market': {
-  //   config: appMarketConfig,
-  //   component: lazy(() => import('./app-market/AppMarket')),
-  // },
+  'app-market': {
+    config: appMarketConfig,
+    component: lazy(() => import('./app-market/AppMarket')),
+  },
 }
