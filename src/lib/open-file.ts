@@ -9,8 +9,7 @@ import { appRegistry } from '@/apps/_registry'
  */
 const MIME_APP_MAP: { prefix: string; appId: string; propKey: string }[] = [
   { prefix: 'image/', appId: 'image-viewer', propKey: 'filePath' },
-  // Kelajakda qo'shiladi:
-  // { prefix: 'text/', appId: 'text-editor', propKey: 'filePath' },
+  { prefix: 'text/', appId: 'text-editor', propKey: 'filePath' },
   // { prefix: 'audio/', appId: 'music-player', propKey: 'filePath' },
   // { prefix: 'video/', appId: 'video-player', propKey: 'filePath' },
 ]
