@@ -13,7 +13,7 @@ import { imageViewerConfig } from './image-viewer/config'
 import { notificationDemoConfig } from './notification-demo/config'
 // import { aiChatConfig } from './ai-chat/config'
 // import { terminalConfig } from './terminal/config'
-// import { settingsConfig } from './settings/config'
+import { settingsConfig } from './settings/config'
 import { textEditorConfig } from './text-editor/config'
 import { appMarketConfig } from './app-market/config'
 
@@ -40,10 +40,10 @@ export const appRegistry: Record<string, AppRegistryEntry> = {
   //   config: terminalConfig,
   //   component: lazy(() => import('./terminal/Terminal')),
   // },
-  // 'settings': {
-  //   config: settingsConfig,
-  //   component: lazy(() => import('./settings/Settings')),
-  // },
+  'settings': {
+    config: settingsConfig,
+    component: lazy(() => import('./settings/Settings')),
+  },
   'text-editor': {
     config: textEditorConfig,
     component: lazy(() => import('./text-editor/TextEditor')),
