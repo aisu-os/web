@@ -9,5 +9,6 @@ export const Z_INDEX = {
   dock: 9999,
   contextMenu: 9999,
   dropdown: 9999,
+  dragOverlay: 10000,
   cursor: 99999,
 } as const

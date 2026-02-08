@@ -5,6 +5,7 @@ import {
   FileManagerStoreContext,
   useFileManagerStore,
 } from './hooks/use-file-manager-store'
+import { WindowIdContext } from './hooks/use-window-id'
 import Toolbar from './components/Toolbar'
 import Breadcrumb from './components/Breadcrumb'
 import Sidebar from './components/Sidebar'
@@ -14,6 +15,7 @@ import FileContextMenu from './components/FileContextMenu'
 
 interface FileManagerProps {
   initialPath?: string
+  windowId?: string
 }
 
 const FileManagerInner = () => {
@@ -64,13 +66,15 @@ const FileManagerInner = () => {
   )
 }
 
-const FileManager = ({ initialPath = '/' }: FileManagerProps) => {
+const FileManager = ({ initialPath = '/', windowId = '' }: FileManagerProps) => {
   const store = useMemo(() => createFileManagerStore(initialPath), [])
 
   return (
-    <FileManagerStoreContext.Provider value={store}>
-      <FileManagerInner />
-    </FileManagerStoreContext.Provider>
+    <WindowIdContext.Provider value={windowId}>
+      <FileManagerStoreContext.Provider value={store}>
+        <FileManagerInner />
+      </FileManagerStoreContext.Provider>
+    </WindowIdContext.Provider>
   )
 }
 

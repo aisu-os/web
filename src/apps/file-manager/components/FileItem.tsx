@@ -5,6 +5,8 @@ import type { FileNode } from '@/types'
 import { getFileIcon } from '../file-manager-icons'
 import { formatFileSize, formatDate, getFileKind } from '../file-manager.utils'
 import InlineEditInput from './InlineEditInput'
+import { useDragSource } from '@/hooks/use-drag-source'
+import { useDropTarget } from '@/hooks/use-drop-target'
 
 function getSelectRange(name: string, type: 'file' | 'directory'): [number, number] | undefined {
   if (type === 'directory') return undefined
@@ -23,6 +25,8 @@ interface FileItemProps {
   onContextMenu: (e: React.MouseEvent, path: string) => void
   onCommitEdit?: (name: string) => void
   onCancelEdit?: () => void
+  windowId?: string
+  selectedPaths?: string[]
 }
 
 const FileItem = ({
@@ -35,27 +39,73 @@ const FileItem = ({
   onContextMenu,
   onCommitEdit,
   onCancelEdit,
+  windowId = '',
+  selectedPaths = [],
 }: FileItemProps) => {
   const clickTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const itemRef = useRef<HTMLDivElement>(null)
   const IconComponent = getFileIcon(node)
 
-  const handleClick = useCallback(
-    (e: React.MouseEvent) => {
-      if (isEditing) return
+  // Drag source
+  const dragSource = useDragSource({
+    source: { type: 'file-manager', windowId },
+    getItems: () => {
+      if (isSelected && selectedPaths.length > 1) {
+        return selectedPaths.map((p) => ({
+          name: p.split('/').pop() ?? '',
+          path: p,
+          type: node.type,
+        }))
+      }
+      return [{
+        name: node.name,
+        path: node.path,
+        type: node.type,
+      }]
+    },
+    shouldStart: (e) => {
+      if (isEditing) return false
       e.stopPropagation()
-      if (clickTimer.current) {
-        clearTimeout(clickTimer.current)
-        clickTimer.current = null
-        onOpen(node.path)
-      } else {
-        clickTimer.current = setTimeout(() => {
+      return true
+    },
+    onDragEnd: (wasDragged) => {
+      if (!wasDragged) {
+        // Click logic
+        if (clickTimer.current) {
+          clearTimeout(clickTimer.current)
           clickTimer.current = null
-          onSelect(node.path, e.metaKey || e.ctrlKey)
-        }, DOUBLE_CLICK_DELAY)
+          onOpen(node.path)
+        } else {
+          clickTimer.current = setTimeout(() => {
+            clickTimer.current = null
+          }, DOUBLE_CLICK_DELAY)
+        }
       }
     },
-    [node.path, isEditing, onSelect, onOpen]
-  )
+  })
+
+  // Drop target — faqat folder uchun
+  const dropTarget = useDropTarget({
+    target: { type: 'folder-item', path: node.path, windowId },
+    elementRef: itemRef,
+    accepts: (_source, items) => {
+      if (node.type !== 'directory') return false
+      if (items.some((i) => i.path === node.path)) return false
+      if (items.some((i) => node.path.startsWith(i.path + '/'))) return false
+      return true
+    },
+  })
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (isEditing) return
+    const additive = e.metaKey || e.ctrlKey
+    if (!isSelected) {
+      onSelect(node.path, additive)
+    } else if (additive) {
+      onSelect(node.path, true)
+    }
+    dragSource.handleMouseDown(e)
+  }
 
   const handleContextMenu = useCallback(
     (e: React.MouseEvent) => {
@@ -70,18 +120,23 @@ const FileItem = ({
     [node.path, isEditing, isSelected, onSelect, onContextMenu]
   )
 
+  const isDropOver = dropTarget.isOver && dropTarget.canDrop
+
   if (variant === 'icon') {
     return (
       <div
+        ref={itemRef}
         data-file-item-path={node.path}
-        onClick={handleClick}
+        onMouseDown={handleMouseDown}
         onContextMenu={handleContextMenu}
         className={cn(
           'flex flex-col items-center justify-start gap-1 p-2 rounded-lg cursor-default',
           'w-[90px] transition-colors',
           isSelected
             ? 'bg-white/10'
-            : 'hover:bg-white/[0.04]'
+            : 'hover:bg-white/[0.04]',
+          isDropOver && 'ring-2 ring-blue-400/60 bg-blue-400/10',
+          dragSource.isDragging && 'opacity-40',
         )}
       >
         <IconComponent size={48} />
@@ -111,14 +166,17 @@ const FileItem = ({
   if (variant === 'list') {
     return (
       <div
+        ref={itemRef}
         data-file-item-path={node.path}
-        onClick={handleClick}
+        onMouseDown={handleMouseDown}
         onContextMenu={handleContextMenu}
         className={cn(
           'flex items-center h-[28px] px-3 gap-2 cursor-default transition-colors',
           isSelected
             ? 'bg-[#2463EB]/80 text-white'
-            : 'text-white/70 hover:bg-white/[0.03]'
+            : 'text-white/70 hover:bg-white/[0.03]',
+          isDropOver && 'ring-2 ring-blue-400/60 bg-blue-400/10',
+          dragSource.isDragging && 'opacity-40',
         )}
       >
         <span className="shrink-0">
@@ -151,14 +209,17 @@ const FileItem = ({
   // compact variant (for column view)
   return (
     <div
+      ref={itemRef}
       data-file-item-path={node.path}
-      onClick={handleClick}
+      onMouseDown={handleMouseDown}
       onContextMenu={handleContextMenu}
       className={cn(
         'flex items-center h-[26px] px-2 gap-1.5 cursor-default transition-colors',
         isSelected
           ? 'bg-[#2463EB]/80 text-white'
-          : 'text-white/70 hover:bg-white/[0.03]'
+          : 'text-white/70 hover:bg-white/[0.03]',
+        isDropOver && 'ring-2 ring-blue-400/60 bg-blue-400/10',
+        dragSource.isDragging && 'opacity-40',
       )}
     >
       <span className="shrink-0">

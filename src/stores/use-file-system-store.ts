@@ -76,6 +76,8 @@ interface FileSystemActions {
   renameNode: (path: string, newName: string) => FileNode | null
   deleteNode: (path: string) => boolean
   generateUniqueName: (parentPath: string, baseName: string) => string
+  moveNode: (sourcePath: string, destParentPath: string) => { oldPath: string; newPath: string } | null
+  copyNode: (sourcePath: string, destParentPath: string) => { oldPath: string; newPath: string } | null
 }
 
 const initialRoot = deepClone(MOCK_FILE_SYSTEM)
@@ -195,5 +197,81 @@ export const useFileSystemStore = create<FileSystemState & FileSystemActions>((s
     set({ root: newRoot, nodeMap: newNodeMap })
 
     return true
+  },
+
+  moveNode: (sourcePath, destParentPath) => {
+    if (sourcePath === '/') return null
+    const { root } = get()
+    const node = get().nodeMap.get(sourcePath)
+    if (!node) return null
+
+    const destParent = get().nodeMap.get(destParentPath)
+    if (!destParent || destParent.type !== 'directory') return null
+
+    // O'ziga yoki o'z bolasiga ko'chirish mumkin emas
+    if (destParentPath === sourcePath || destParentPath.startsWith(sourcePath + '/')) return null
+
+    // Bir xil joyga ko'chirish — no-op
+    const sourceParentPath = get().getParentPath(sourcePath)
+    if (sourceParentPath === destParentPath) return null
+
+    // Nom takrorlanishini tekshirish
+    const finalName = get().generateUniqueName(destParentPath, node.name)
+    const newPath = destParentPath === '/' ? `/${finalName}` : `${destParentPath}/${finalName}`
+    const now = new Date()
+
+    // 1. Eski joydan olib tashlash
+    let newRoot = updateTree(root, sourceParentPath, (parentNode) => ({
+      ...parentNode,
+      children: parentNode.children?.filter((child) => child.path !== sourcePath),
+      updatedAt: now,
+    }))
+
+    // 2. Yo'llarni yangilash
+    const movedNode = updateDescendantPaths(node, sourcePath, newPath)
+    const finalNode = { ...movedNode, name: finalName, updatedAt: now }
+
+    // 3. Yangi joyga qo'shish
+    newRoot = updateTree(newRoot, destParentPath, (parentNode) => ({
+      ...parentNode,
+      children: [...(parentNode.children ?? []), finalNode],
+      updatedAt: now,
+    }))
+
+    const newNodeMap = buildNodeMap(newRoot)
+    set({ root: newRoot, nodeMap: newNodeMap })
+
+    return { oldPath: sourcePath, newPath }
+  },
+
+  copyNode: (sourcePath, destParentPath) => {
+    if (sourcePath === '/') return null
+    const { root } = get()
+    const node = get().nodeMap.get(sourcePath)
+    if (!node) return null
+
+    const destParent = get().nodeMap.get(destParentPath)
+    if (!destParent || destParent.type !== 'directory') return null
+
+    const finalName = get().generateUniqueName(destParentPath, node.name)
+    const newPath = destParentPath === '/' ? `/${finalName}` : `${destParentPath}/${finalName}`
+    const now = new Date()
+
+    // Deep copy bilan yangi node yaratish
+    const copiedNode = deepClone(node)
+    const movedNode = updateDescendantPaths(copiedNode, sourcePath, newPath)
+    const finalNode = { ...movedNode, name: finalName, updatedAt: now, createdAt: now }
+
+    // Yangi joyga qo'shish
+    const newRoot = updateTree(root, destParentPath, (parentNode) => ({
+      ...parentNode,
+      children: [...(parentNode.children ?? []), finalNode],
+      updatedAt: now,
+    }))
+
+    const newNodeMap = buildNodeMap(newRoot)
+    set({ root: newRoot, nodeMap: newNodeMap })
+
+    return { oldPath: sourcePath, newPath }
   },
 }))

@@ -94,3 +94,13 @@ export type {
   NetworkState,
   NetworkInformation,
 } from './network'
+
+export type {
+  DragSourceType,
+  DragOperation,
+  DragSource,
+  DragItem,
+  DropTarget,
+  DragSession,
+  DropTargetRegistration,
+} from './drag-drop'

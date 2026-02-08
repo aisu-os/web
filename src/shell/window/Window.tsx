@@ -295,7 +295,7 @@ const Window = ({ windowState }: WindowProps) => {
                 </div>
               }
             >
-              <AppComponent {...(windowProps ?? {})} />
+              <AppComponent windowId={id} {...(windowProps ?? {})} />
             </Suspense>
           </div>
 

@@ -64,6 +64,10 @@ interface DesktopStore {
   startRenaming: (id: string) => void
   commitEditing: (name: string) => void
   cancelEditing: () => void
+
+  addItemFromFileSystem: (fsPath: string, position: { x: number; y: number }) => void
+  removeItemByFsPath: (fsPath: string) => void
+  getItemByFsPath: (fsPath: string) => DesktopItem | undefined
 }
 
 export const useDesktopStore = create<DesktopStore>((set, get) => ({
@@ -142,6 +146,7 @@ export const useDesktopStore = create<DesktopStore>((set, get) => ({
       type,
       icon: getIconForType(type),
       position,
+      fsPath: `/Desktop/${uniqueName}`,
     }
 
     // File system'da ham yaratish
@@ -213,7 +218,7 @@ export const useDesktopStore = create<DesktopStore>((set, get) => ({
 
     set((state) => ({
       items: state.items.map((i) =>
-        i.id === editingItemId ? { ...i, name: trimmedName } : i
+        i.id === editingItemId ? { ...i, name: trimmedName, fsPath: `/Desktop/${trimmedName}` } : i
       ),
       editingItemId: null,
       editingMode: null,
@@ -237,5 +242,37 @@ export const useDesktopStore = create<DesktopStore>((set, get) => ({
     } else {
       set({ editingItemId: null, editingMode: null })
     }
+  },
+
+  addItemFromFileSystem: (fsPath, position) => {
+    const fs = useFileSystemStore.getState()
+    const node = fs.getNode(fsPath)
+    if (!node) return
+
+    const { items } = get()
+    // Agar allaqachon desktop da bo'lsa, qo'shmaslik
+    if (items.some((i) => i.fsPath === fsPath)) return
+
+    const newItem: DesktopItem = {
+      id: `desktop-${Date.now()}`,
+      name: node.name,
+      type: node.type,
+      icon: getIconForType(node.type),
+      position,
+      fsPath,
+    }
+    set((state) => ({ items: [...state.items, newItem] }))
+  },
+
+  removeItemByFsPath: (fsPath) =>
+    set((state) => ({
+      items: state.items.filter((i) => i.fsPath !== fsPath),
+      selectedIds: state.selectedIds.filter(
+        (sid) => !state.items.find((i) => i.id === sid && i.fsPath === fsPath)
+      ),
+    })),
+
+  getItemByFsPath: (fsPath) => {
+    return get().items.find((i) => i.fsPath === fsPath)
   },
 }))

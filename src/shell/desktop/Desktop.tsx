@@ -5,6 +5,7 @@ import ContextMenu from './ContextMenu'
 import AboutDialog from './AboutDialog'
 import GetInfoDialog from '@/components/get-info/GetInfoDialog'
 import MarqueeSelection from './MarqueeSelection'
+import DragOverlay from '@/components/drag-drop/DragOverlay'
 import { TopBar } from '@/shell/taskbar'
 import { Dock } from '@/shell/dock'
 import { Window } from '@/shell/window'
@@ -14,6 +15,8 @@ import { useProcessStore } from '@/stores/use-process-store'
 import { useMenuBarStore } from '@/stores/use-menubar-store'
 import { appRegistry } from '@/apps/_registry'
 import { useMarqueeSelection } from '@/hooks/use-marquee-selection'
+import { useDropTarget } from '@/hooks/use-drop-target'
+import { cn } from '@/lib/cn'
 
 interface DesktopProps {
   isReady: boolean
@@ -50,6 +53,15 @@ const Desktop = ({ isReady }: DesktopProps) => {
 
   const { marqueeRect } = useMarqueeSelection({ containerRef: desktopRef })
 
+  const dropTarget = useDropTarget({
+    target: { type: 'desktop', path: '/Desktop' },
+    elementRef: desktopRef,
+    accepts: (source) => {
+      if (source.type === 'desktop') return false
+      return true
+    },
+  })
+
   const handleContextMenu = (e: React.MouseEvent) => {
     e.preventDefault()
     const target = e.target as HTMLElement
@@ -75,7 +87,10 @@ const Desktop = ({ isReady }: DesktopProps) => {
 
         <div
           ref={desktopRef}
-          className="relative flex-1"
+          className={cn(
+            'relative flex-1',
+            dropTarget.isOver && dropTarget.canDrop && 'bg-blue-500/5',
+          )}
           onContextMenu={handleContextMenu}
           onClick={handleClick}
         >
@@ -88,6 +103,8 @@ const Desktop = ({ isReady }: DesktopProps) => {
           {windows.map((win) => (
             <Window key={win.id} windowState={win} />
           ))}
+
+          <DragOverlay />
         </div>
 
         <Dock isVisible={isReady} />

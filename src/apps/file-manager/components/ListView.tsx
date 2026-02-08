@@ -2,6 +2,7 @@ import { cn } from '@/lib/cn'
 import type { FileNode } from '@/types'
 import type { SortKey } from '../file-manager.types'
 import { useFileManagerStore } from '../hooks/use-file-manager-store'
+import { useWindowId } from '../hooks/use-window-id'
 import FileItem from './FileItem'
 
 interface ListViewProps {
@@ -26,6 +27,7 @@ const ListView = ({ items }: ListViewProps) => {
   const editingPath = useFileManagerStore((s) => s.editingPath)
   const commitEditing = useFileManagerStore((s) => s.commitEditing)
   const cancelEditing = useFileManagerStore((s) => s.cancelEditing)
+  const windowId = useWindowId()
 
   const handleOpen = (path: string) => {
     const item = items.find((i) => i.path === path)
@@ -88,6 +90,8 @@ const ListView = ({ items }: ListViewProps) => {
               onContextMenu={handleContextMenu}
               onCommitEdit={commitEditing}
               onCancelEdit={cancelEditing}
+              windowId={windowId}
+              selectedPaths={selectedPaths}
             />
           </div>
         ))}

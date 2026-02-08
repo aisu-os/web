@@ -7,6 +7,7 @@ export interface DesktopItem {
   type: FileType
   icon: 'folder' | 'text-file' | 'image-file' | 'generic-file'
   position: { x: number; y: number }
+  fsPath: string
 }
 
 export type ContextMenuItem = AppMenuItem

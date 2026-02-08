@@ -3,19 +3,13 @@ import { motion } from 'framer-motion'
 import { cn } from '@/lib/cn'
 import { useDesktopStore } from '@/stores/use-desktop-store'
 import { useWindowStore } from '@/stores/use-window-store'
-import { useDrag } from '@/hooks/use-drag'
+import { useDragSource } from '@/hooks/use-drag-source'
+import { useDropTarget } from '@/hooks/use-drop-target'
 import { DOUBLE_CLICK_DELAY } from '@/lib/constants'
 import { DESKTOP_ICON_MAP } from './desktop-icons'
 import { DESKTOP_ICON_SIZE } from './desktop.constants'
 import InlineEditInput from '@/components/ui/InlineEditInput'
 import type { DesktopItem as DesktopItemType } from '@/types'
-
-// Desktop item nomi -> mock file system yo'li mapping
-const DESKTOP_PATH_MAP: Record<string, string> = {
-  'Projects': '/Desktop/Projects',
-  'notes.txt': '/Desktop/notes.txt',
-  'screenshot.png': '/Desktop/screenshot.png',
-}
 
 interface DesktopItemProps {
   item: DesktopItemType
@@ -23,6 +17,8 @@ interface DesktopItemProps {
 
 const DesktopItem = ({ item }: DesktopItemProps) => {
   const isSelected = useDesktopStore((s) => s.selectedIds.includes(item.id))
+  const selectedIds = useDesktopStore((s) => s.selectedIds)
+  const items = useDesktopStore((s) => s.items)
   const selectItem = useDesktopStore((s) => s.selectItem)
   const updateItemPosition = useDesktopStore((s) => s.updateItemPosition)
   const openContextMenu = useDesktopStore((s) => s.openContextMenu)
@@ -37,6 +33,7 @@ const DesktopItem = ({ item }: DesktopItemProps) => {
 
   const dragStartPosRef = useRef({ x: 0, y: 0 })
   const clickTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const itemRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     return () => {
@@ -46,13 +43,32 @@ const DesktopItem = ({ item }: DesktopItemProps) => {
 
   const handleOpenItem = useCallback(() => {
     if (item.type === 'directory') {
-      const path = DESKTOP_PATH_MAP[item.name] ?? `/Desktop/${item.name}`
-      openWindow('file-manager', { initialPath: path })
+      openWindow('file-manager', { initialPath: item.fsPath })
     }
-  }, [item.name, item.type, openWindow])
+  }, [item.fsPath, item.type, openWindow])
 
-  const itemDrag = useDrag({
-    threshold: 3,
+  const dragSource = useDragSource({
+    source: { type: 'desktop' },
+    getItems: () => {
+      if (isSelected && selectedIds.length > 1) {
+        return selectedIds.map((id) => {
+          const desktopItem = items.find((i) => i.id === id)
+          if (!desktopItem) return null
+          return {
+            name: desktopItem.name,
+            path: desktopItem.fsPath,
+            type: desktopItem.type,
+            desktopItemId: desktopItem.id,
+          }
+        }).filter(Boolean) as { name: string; path: string; type: 'file' | 'directory'; desktopItemId: string }[]
+      }
+      return [{
+        name: item.name,
+        path: item.fsPath,
+        type: item.type,
+        desktopItemId: item.id,
+      }]
+    },
     shouldStart: (e) => {
       if (isEditing) return false
       e.stopPropagation()
@@ -73,18 +89,34 @@ const DesktopItem = ({ item }: DesktopItemProps) => {
         y: dragStartPosRef.current.y + dy,
       })
     },
-    onDragEnd: (wasDragged) => {
-      if (!wasDragged) {
-        if (clickTimerRef.current) {
-          clearTimeout(clickTimerRef.current)
-          clickTimerRef.current = null
-          handleOpenItem()
-        } else {
-          clickTimerRef.current = setTimeout(() => {
-            clickTimerRef.current = null
-          }, DOUBLE_CLICK_DELAY)
-        }
+    onDragEnd: (wasDragged, didDrop) => {
+      if (didDrop) {
+        return
       }
+      if (wasDragged) {
+        return
+      }
+      // Click / double-click
+      if (clickTimerRef.current) {
+        clearTimeout(clickTimerRef.current)
+        clickTimerRef.current = null
+        handleOpenItem()
+      } else {
+        clickTimerRef.current = setTimeout(() => {
+          clickTimerRef.current = null
+        }, DOUBLE_CLICK_DELAY)
+      }
+    },
+  })
+
+  // Drop target — faqat folder tipdagi elementlar uchun
+  const dropTarget = useDropTarget({
+    target: { type: 'folder-item', path: item.fsPath },
+    elementRef: itemRef,
+    accepts: (_source, dragItems) => {
+      if (item.type !== 'directory') return false
+      if (dragItems.some((i) => i.path === item.fsPath)) return false
+      return true
     },
   })
 
@@ -100,19 +132,23 @@ const DesktopItem = ({ item }: DesktopItemProps) => {
     openContextMenu(e.clientX, e.clientY, item.id)
   }, [item.id, isSelected, isEditing, selectItem, openContextMenu])
 
+  const isDropOver = dropTarget.isOver && dropTarget.canDrop
+
   return (
     <motion.div
+      ref={itemRef}
       className={cn(
         'absolute flex flex-col items-center w-[80px] cursor-default select-none',
         'rounded-lg p-1',
         isSelected && 'bg-white/10',
-        itemDrag.isDragging && 'opacity-80 z-50',
+        dragSource.isDragging && 'opacity-50 z-50',
+        isDropOver && 'ring-2 ring-blue-400/60 bg-blue-400/10',
       )}
       style={{
         left: item.position.x,
         top: item.position.y,
       }}
-      onMouseDown={itemDrag.handleMouseDown}
+      onMouseDown={dragSource.handleMouseDown}
       onContextMenu={handleContextMenu}
       whileTap={isEditing ? undefined : { scale: 0.95 }}
       transition={{ duration: 0.1 }}

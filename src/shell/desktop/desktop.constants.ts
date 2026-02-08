@@ -25,6 +25,7 @@ export const DEFAULT_DESKTOP_ITEMS: DesktopItem[] = [
     type: 'directory',
     icon: 'folder',
     position: { x: 24, y: 48 },
+    fsPath: '/Desktop/Projects',
   },
   {
     id: 'file-notes',
@@ -32,6 +33,7 @@ export const DEFAULT_DESKTOP_ITEMS: DesktopItem[] = [
     type: 'file',
     icon: 'text-file',
     position: { x: 24, y: 152 },
+    fsPath: '/Desktop/notes.txt',
   },
   {
     id: 'file-screenshot',
@@ -39,6 +41,7 @@ export const DEFAULT_DESKTOP_ITEMS: DesktopItem[] = [
     type: 'file',
     icon: 'image-file',
     position: { x: 24, y: 256 },
+    fsPath: '/Desktop/screenshot.png',
   },
 ]
 

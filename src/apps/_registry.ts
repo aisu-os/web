@@ -3,7 +3,8 @@ import type { AppConfig } from '@/types'
 
 export interface AppRegistryEntry {
   config: AppConfig
-  component: React.LazyExoticComponent<React.ComponentType>
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  component: React.LazyExoticComponent<React.ComponentType<any>>
 }
 
 // Ilovalar config'lari qo'shilganda shu yerga import qilinadi
