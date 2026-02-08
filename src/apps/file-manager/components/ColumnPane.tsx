@@ -1,5 +1,6 @@
 import { cn } from '@/lib/cn'
 import type { FileNode } from '@/types'
+import { openFile } from '@/lib/open-file'
 import { useFileManagerStore } from '../hooks/use-file-manager-store'
 import FileItem from './FileItem'
 
@@ -28,8 +29,11 @@ const ColumnPane = ({ items, level, selectedPath }: ColumnPaneProps) => {
 
   const handleOpen = (path: string) => {
     const item = items.find((i) => i.path === path)
-    if (item?.type === 'directory') {
+    if (!item) return
+    if (item.type === 'directory') {
       navigateTo(path)
+    } else {
+      openFile(path)
     }
   }
 

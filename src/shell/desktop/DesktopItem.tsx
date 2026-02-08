@@ -2,7 +2,7 @@ import { useRef, useCallback, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { cn } from '@/lib/cn'
 import { useDesktopStore } from '@/stores/use-desktop-store'
-import { useWindowStore } from '@/stores/use-window-store'
+import { openFile } from '@/lib/open-file'
 import { useDragSource } from '@/hooks/use-drag-source'
 import { useDropTarget } from '@/hooks/use-drop-target'
 import { DOUBLE_CLICK_DELAY } from '@/lib/constants'
@@ -22,7 +22,6 @@ const DesktopItem = ({ item }: DesktopItemProps) => {
   const selectItem = useDesktopStore((s) => s.selectItem)
   const updateItemPosition = useDesktopStore((s) => s.updateItemPosition)
   const openContextMenu = useDesktopStore((s) => s.openContextMenu)
-  const openWindow = useWindowStore((s) => s.openWindow)
   const editingItemId = useDesktopStore((s) => s.editingItemId)
   const commitEditing = useDesktopStore((s) => s.commitEditing)
   const cancelEditing = useDesktopStore((s) => s.cancelEditing)
@@ -42,10 +41,8 @@ const DesktopItem = ({ item }: DesktopItemProps) => {
   }, [])
 
   const handleOpenItem = useCallback(() => {
-    if (item.type === 'directory') {
-      openWindow('file-manager', { initialPath: item.fsPath })
-    }
-  }, [item.fsPath, item.type, openWindow])
+    openFile(item.fsPath)
+  }, [item.fsPath])
 
   const dragSource = useDragSource({
     source: { type: 'desktop' },

@@ -2,6 +2,7 @@ import { useRef, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { cn } from '@/lib/cn'
 import { Z_INDEX } from '@/lib/constants'
+import { openFile } from '@/lib/open-file'
 import { useClickOutside } from '@/hooks/use-click-outside'
 import { useMenuPosition } from '@/hooks/use-menu-position'
 import { useGetInfoStore } from '@/stores/use-get-info-store'
@@ -45,7 +46,11 @@ const FileContextMenu = () => {
         case 'open':
           if (targetPath) {
             const node = getNode(targetPath)
-            if (node?.type === 'directory') navigateTo(targetPath)
+            if (node?.type === 'directory') {
+              navigateTo(targetPath)
+            } else if (node) {
+              openFile(targetPath)
+            }
           }
           break
         case 'get-info': {

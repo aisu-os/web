@@ -1,4 +1,5 @@
 import type { FileNode } from '@/types'
+import { openFile } from '@/lib/open-file'
 import { useFileManagerStore } from '../hooks/use-file-manager-store'
 import { useWindowId } from '../hooks/use-window-id'
 import FileItem from './FileItem'
@@ -19,8 +20,11 @@ const IconView = ({ items }: IconViewProps) => {
 
   const handleOpen = (path: string) => {
     const item = items.find((i) => i.path === path)
-    if (item?.type === 'directory') {
+    if (!item) return
+    if (item.type === 'directory') {
       navigateTo(path)
+    } else {
+      openFile(path)
     }
   }
 

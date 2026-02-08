@@ -2,6 +2,7 @@ import { useRef, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { cn } from '@/lib/cn'
 import { Z_INDEX } from '@/lib/constants'
+import { openFile } from '@/lib/open-file'
 import { useDesktopStore } from '@/stores/use-desktop-store'
 import { useWindowStore } from '@/stores/use-window-store'
 import { useGetInfoStore } from '@/stores/use-get-info-store'
@@ -50,9 +51,9 @@ const ContextMenu = () => {
       case 'item:open': {
         if (targetItemId) {
           const item = items.find((i) => i.id === targetItemId)
-          if (item?.type === 'directory') {
+          if (item) {
             const path = DESKTOP_PATH_MAP[item.name] ?? `/Desktop/${item.name}`
-            openWindow('file-manager', { initialPath: path })
+            openFile(path)
           }
         }
         break
