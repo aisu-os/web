@@ -4,6 +4,7 @@ import { cn } from '@/lib/cn'
 import { Z_INDEX } from '@/lib/constants'
 import { useClickOutside } from '@/hooks/use-click-outside'
 import { useMenuPosition } from '@/hooks/use-menu-position'
+import { useGetInfoStore } from '@/stores/use-get-info-store'
 import { useFileManagerStore } from '../hooks/use-file-manager-store'
 import { useFileSystem } from '../hooks/use-file-system'
 import {
@@ -14,10 +15,12 @@ import {
 
 const FileContextMenu = () => {
   const contextMenu = useFileManagerStore((s) => s.contextMenu)
+  const currentPath = useFileManagerStore((s) => s.currentPath)
   const closeContextMenu = useFileManagerStore((s) => s.closeContextMenu)
   const startCreating = useFileManagerStore((s) => s.startCreating)
   const startRenaming = useFileManagerStore((s) => s.startRenaming)
   const navigateTo = useFileManagerStore((s) => s.navigateTo)
+  const openGetInfo = useGetInfoStore((s) => s.open)
   const menuRef = useRef<HTMLDivElement>(null)
   const { getNode } = useFileSystem()
   const adjustedPosition = useMenuPosition(menuRef, contextMenu.isOpen, contextMenu.position)
@@ -45,9 +48,14 @@ const FileContextMenu = () => {
             if (node?.type === 'directory') navigateTo(targetPath)
           }
           break
+        case 'get-info': {
+          const pathToInspect = targetPath ?? currentPath
+          openGetInfo(pathToInspect)
+          break
+        }
       }
     },
-    [contextMenu.targetPath, closeContextMenu, startCreating, startRenaming, navigateTo, getNode]
+    [contextMenu.targetPath, closeContextMenu, startCreating, startRenaming, navigateTo, getNode, currentPath, openGetInfo]
   )
 
   let items = BACKGROUND_CONTEXT_MENU

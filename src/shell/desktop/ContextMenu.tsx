@@ -4,6 +4,7 @@ import { cn } from '@/lib/cn'
 import { Z_INDEX } from '@/lib/constants'
 import { useDesktopStore } from '@/stores/use-desktop-store'
 import { useWindowStore } from '@/stores/use-window-store'
+import { useGetInfoStore } from '@/stores/use-get-info-store'
 import { useClickOutside } from '@/hooks/use-click-outside'
 import { useMenuPosition } from '@/hooks/use-menu-position'
 import {
@@ -25,6 +26,7 @@ const ContextMenu = () => {
   const startRenaming = useDesktopStore((s) => s.startRenaming)
   const items = useDesktopStore((s) => s.items)
   const openWindow = useWindowStore((s) => s.openWindow)
+  const openGetInfo = useGetInfoStore((s) => s.open)
   const menuRef = useRef<HTMLDivElement>(null)
   const adjustedPosition = useMenuPosition(menuRef, contextMenu.isOpen, contextMenu.position)
 
@@ -58,8 +60,18 @@ const ContextMenu = () => {
       case 'item:rename':
         if (targetItemId) startRenaming(targetItemId)
         break
+      case 'item:get-info': {
+        if (targetItemId) {
+          const item = items.find((i) => i.id === targetItemId)
+          if (item) {
+            const path = DESKTOP_PATH_MAP[item.name] ?? `/Desktop/${item.name}`
+            openGetInfo(path)
+          }
+        }
+        break
+      }
     }
-  }, [contextMenu.targetItemId, closeContextMenu, selectAll, startCreating, startRenaming, items, openWindow])
+  }, [contextMenu.targetItemId, closeContextMenu, selectAll, startCreating, startRenaming, items, openWindow, openGetInfo])
 
   const menuItems = contextMenu.targetItemId
     ? ITEM_CONTEXT_MENU_ITEMS

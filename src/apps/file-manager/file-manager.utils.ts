@@ -47,6 +47,12 @@ export function formatDate(date?: Date): string {
   })
 }
 
+export function calculateFolderSize(node: FileNode): number {
+  if (node.type === 'file') return node.size ?? 0
+  if (!node.children) return 0
+  return node.children.reduce((sum, child) => sum + calculateFolderSize(child), 0)
+}
+
 export function sortFileNodes(
   nodes: FileNode[],
   key: SortKey,

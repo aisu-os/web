@@ -3,6 +3,7 @@ import DesktopBackground from './DesktopBackground'
 import DesktopItemComponent from './DesktopItem'
 import ContextMenu from './ContextMenu'
 import AboutDialog from './AboutDialog'
+import GetInfoDialog from '@/components/get-info/GetInfoDialog'
 import MarqueeSelection from './MarqueeSelection'
 import { TopBar } from '@/shell/taskbar'
 import { Dock } from '@/shell/dock'
@@ -94,6 +95,7 @@ const Desktop = ({ isReady }: DesktopProps) => {
 
       <ContextMenu />
       <AboutDialog />
+      <GetInfoDialog />
     </div>
   )
 }
