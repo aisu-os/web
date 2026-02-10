@@ -46,7 +46,16 @@ const LoginPasswordField = ({
 }: LoginPasswordFieldProps) => {
   const [password, setPassword] = useState('')
   const [isShaking, setIsShaking] = useState(false)
+  const [isEntering, setIsEntering] = useState(true)
   const inputRef = useRef<HTMLInputElement>(null)
+
+  // Kirish animatsiyasi tugagandan keyin classni olib tashlash
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsEntering(false)
+    }, 1600) // 0.9s delay + 0.6s animation
+    return () => clearTimeout(timer)
+  }, [])
 
   // Avtofokus
   useEffect(() => {
@@ -86,6 +95,7 @@ const LoginPasswordField = ({
     <div
       className={cn(
         'login-password',
+        isEntering && 'login-password--entering',
         isShaking && 'login-password--shake',
         error && 'login-password--error'
       )}

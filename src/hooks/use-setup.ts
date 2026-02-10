@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { useAuthStore } from '@/stores/use-auth-store'
 import { registerUser } from '@/services/api/auth-service'
-import { SETUP_STEPS, SETUP_TIMING } from '@/shell/setup/setup.constants'
+import { SETUP_STEPS, SETUP_TIMING, PRESET_AVATARS } from '@/shell/setup/setup.constants'
 import type { SetupStep, SetupAccountData, SetupPasswordData, SetupUserData } from '@/types'
 
 interface UseSetupReturn {
@@ -24,7 +24,7 @@ interface UseSetupReturn {
   updateAccountData: (data: Partial<SetupAccountData>) => void
   updatePasswordData: (data: Partial<SetupPasswordData>) => void
   selectAvatar: (gradient: string | null) => void
-  uploadAvatar: (dataUrl: string) => void
+  uploadAvatar: (dataUrl: string, file: File | null) => void
 
   accountErrors: Partial<Record<keyof SetupAccountData, string>>
   passwordErrors: Partial<Record<keyof SetupPasswordData, string>>
@@ -58,7 +58,9 @@ export function useSetup(): UseSetupReturn {
     confirmPassword: '',
   })
   const [selectedAvatar, setSelectedAvatar] = useState<string | null>(null)
-  const [uploadedAvatar, setUploadedAvatar] = useState<string | null>(null)
+  const [selectedAvatarEmoji, setSelectedAvatarEmoji] = useState<string | null>(null)
+  const [uploadedAvatarFile, setUploadedAvatarFile] = useState<File | null>(null)
+  const [uploadedAvatarPreview, setUploadedAvatarPreview] = useState<string | null>(null)
 
   const [accountErrors, setAccountErrors] = useState<Partial<Record<keyof SetupAccountData, string>>>({})
   const [passwordErrors, setPasswordErrors] = useState<Partial<Record<keyof SetupPasswordData, string>>>({})
@@ -164,12 +166,28 @@ export function useSetup(): UseSetupReturn {
 
   const selectAvatar = useCallback((gradient: string | null) => {
     setSelectedAvatar(gradient)
-    if (gradient) setUploadedAvatar(null)
+    if (gradient) {
+      // Gradient'ga mos emoji ni topish
+      const preset = PRESET_AVATARS.find((a) => a.gradient === gradient)
+      setSelectedAvatarEmoji(preset?.emoji ?? null)
+      setUploadedAvatarFile(null)
+      setUploadedAvatarPreview(null)
+    } else {
+      setSelectedAvatarEmoji(null)
+    }
   }, [])
 
-  const uploadAvatar = useCallback((dataUrl: string) => {
-    setUploadedAvatar(dataUrl)
+  const uploadAvatar = useCallback((dataUrl: string, file: File | null) => {
+    if (!dataUrl || !file) {
+      // O'chirish
+      setUploadedAvatarFile(null)
+      setUploadedAvatarPreview(null)
+    } else {
+      setUploadedAvatarFile(file)
+      setUploadedAvatarPreview(dataUrl)
+    }
     setSelectedAvatar(null)
+    setSelectedAvatarEmoji(null)
   }, [])
 
   const completeSetup = useCallback(async () => {
@@ -180,14 +198,13 @@ export function useSetup(): UseSetupReturn {
     setSubmitError(null)
 
     try {
-      const avatar = uploadedAvatar ?? selectedAvatar
-
       const userData: SetupUserData = {
-        fullName: accountData.fullName,
-        username: accountData.username,
         email: accountData.email,
+        username: accountData.username,
+        displayName: accountData.fullName,
         password: passwordData.password,
-        avatar,
+        avatarFile: uploadedAvatarFile,
+        avatarEmoji: selectedAvatarEmoji,
       }
 
       await registerUser(userData)
@@ -206,7 +223,7 @@ export function useSetup(): UseSetupReturn {
       setIsSubmitting(false)
       completedRef.current = false
     }
-  }, [accountData, passwordData, selectedAvatar, uploadedAvatar, completeSetupAction])
+  }, [accountData, passwordData, uploadedAvatarFile, selectedAvatarEmoji, completeSetupAction])
 
   return {
     isVisible,
@@ -221,7 +238,7 @@ export function useSetup(): UseSetupReturn {
     accountData,
     passwordData,
     selectedAvatar,
-    uploadedAvatar,
+    uploadedAvatar: uploadedAvatarPreview,
     updateAccountData,
     updatePasswordData,
     selectAvatar,

@@ -7,7 +7,7 @@ import LoginClock from './LoginClock'
 import LoginAvatar from './LoginAvatar'
 import LoginPasswordField from './LoginPasswordField'
 import LoginProgress from './LoginProgress'
-import LoginEnterPrompt from './LoginEnterPrompt'
+import LoginSwitchUser from './LoginSwitchUser'
 import './login-screen.css'
 
 const LoginScreen = () => {
@@ -20,15 +20,19 @@ const LoginScreen = () => {
     isDesktopLoading,
     loadingProgress,
     loadingStatus,
-    requireInteraction,
     handleSubmit,
-    startLoading,
+    loginMode,
+    switchToOtherUser,
+    switchToKnownUser,
+    handleUsernameSubmit,
+    goToSetup,
   } = useLogin()
 
   const wallpaper = useThemeStore((s) => s.theme.wallpaper)
   const { backgroundStyle } = useWallpaper(wallpaper)
 
-  if (!isVisible || !user) return null
+  if (!isVisible) return null
+  if (!user && loginMode === 'known-user') return null
 
   return (
     <div className={cn('login-screen', isFadingOut && 'login-screen--fading')}>
@@ -43,21 +47,41 @@ const LoginScreen = () => {
 
       {/* Markaziy kontent */}
       <div className="login-content">
-        <LoginAvatar user={user} isSuccess={isFadingOut} />
-
-        <div className="login-username">{user.displayName}</div>
-
         {isDesktopLoading ? (
-          <LoginProgress progress={loadingProgress} status={loadingStatus} />
-        ) : user.passwordEnabled ? (
-          <LoginPasswordField
-            onSubmit={handleSubmit}
+          <>
+            {user && <LoginAvatar user={user} isSuccess={isFadingOut} />}
+            {user && <div className="login-username">{user.displayName}</div>}
+            <LoginProgress progress={loadingProgress} status={loadingStatus} />
+          </>
+        ) : loginMode === 'switch-user' ? (
+          <LoginSwitchUser
+            onSubmit={handleUsernameSubmit}
+            onBack={switchToKnownUser}
+            onCreateNew={goToSetup}
             error={error}
             isLoading={isLoading}
+            showBackButton={!!user}
           />
-        ) : requireInteraction ? (
-          <LoginEnterPrompt onContinue={startLoading} />
-        ) : null}
+        ) : (
+          <>
+            <LoginAvatar user={user!} isSuccess={isFadingOut} />
+
+            <div className="login-username">{user!.displayName}</div>
+
+            <LoginPasswordField
+              onSubmit={handleSubmit}
+              error={error}
+              isLoading={isLoading}
+            />
+            <button
+              type="button"
+              className="login-link login-link--switch"
+              onClick={switchToOtherUser}
+            >
+              Boshqa foydalanuvchi
+            </button>
+          </>
+        )}
       </div>
 
       {/* Pastdagi versiya matni */}

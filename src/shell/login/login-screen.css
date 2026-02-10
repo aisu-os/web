@@ -163,6 +163,9 @@
 .login-password {
   margin-top: 16px;
   position: relative;
+}
+
+.login-password--entering {
   opacity: 0;
   animation: loginFieldSlideUp 0.6s cubic-bezier(0.22, 1, 0.36, 1) 0.9s forwards;
 }
@@ -290,6 +293,93 @@
   text-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
   opacity: 0;
   animation: loginFieldSlideUp 0.3s ease-out forwards;
+}
+
+/* ── Switch User Link ── */
+.login-link {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.45);
+  font-family: 'Nunito', sans-serif;
+  font-size: 13px;
+  cursor: pointer;
+  padding: 6px 12px;
+  border-radius: 8px;
+  transition: color 0.2s ease, background 0.2s ease;
+  outline: none;
+}
+
+.login-link:hover,
+.login-link:focus-visible {
+  color: rgba(255, 255, 255, 0.75);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.login-link--switch {
+  margin-top: 16px;
+  opacity: 0;
+  animation: loginFieldSlideUp 0.6s cubic-bezier(0.22, 1, 0.36, 1) 1.1s forwards;
+}
+
+/* ── Switch User Form ── */
+.login-switch {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+}
+
+.login-switch--entering {
+  opacity: 0;
+  animation: loginFieldSlideUp 0.5s cubic-bezier(0.22, 1, 0.36, 1) 0.3s forwards;
+}
+
+.login-switch--shake {
+  animation: loginShake 0.5s ease-out;
+}
+
+.login-switch__icon {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255, 255, 255, 0.5);
+  margin-bottom: 12px;
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.3),
+    0 0 0 2px rgba(255, 255, 255, 0.08);
+}
+
+.login-switch__title {
+  font-family: 'Quicksand', sans-serif;
+  font-size: 18px;
+  font-weight: 600;
+  color: white;
+  text-shadow: 0 1px 10px rgba(0, 0, 0, 0.3);
+  margin-bottom: 20px;
+}
+
+.login-switch__field {
+  margin-top: 8px;
+}
+
+.login-switch__field--error .login-password__wrapper {
+  border-color: rgba(239, 68, 68, 0.5);
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+.login-switch__actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  margin-top: 16px;
 }
 
 /* ── Loading Progress ── */

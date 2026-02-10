@@ -6,7 +6,7 @@ interface SetupAvatarProps {
   selected: string | null
   uploadedAvatar: string | null
   onSelect: (gradient: string | null) => void
-  onUpload: (dataUrl: string) => void
+  onUpload: (dataUrl: string, file: File | null) => void
   onNext: () => void
 }
 
@@ -23,7 +23,7 @@ const SetupAvatar = ({ selected, uploadedAvatar, onSelect, onUpload, onNext }: S
       const reader = new FileReader()
       reader.onload = () => {
         if (typeof reader.result === 'string') {
-          onUpload(reader.result)
+          onUpload(reader.result, file)
         }
       }
       reader.readAsDataURL(file)
@@ -55,7 +55,7 @@ const SetupAvatar = ({ selected, uploadedAvatar, onSelect, onUpload, onNext }: S
               <button
                 type="button"
                 className="setup-upload__preview-remove"
-                onClick={() => onUpload('')}
+                onClick={() => onUpload('', null)}
               >
                 Olib tashlash
               </button>

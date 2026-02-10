@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import type { ThemeConfig, ThemeMode } from '@/types'
 import { WALLPAPERS } from '@/shell/desktop/desktop.constants'
+import { saveWallpaper } from '@/services/api/auth-service'
 
 function getSystemPreference(): 'light' | 'dark' {
   if (typeof window === 'undefined') return 'dark'
@@ -38,8 +39,10 @@ export const useThemeStore = create<ThemeStore>((set, get) => {
       accentColor: '#0EA5E9',
     },
     effectiveMode: 'dark',
-    setWallpaper: (wallpaper) =>
-      set((state) => ({ theme: { ...state.theme, wallpaper } })),
+    setWallpaper: (wallpaper) => {
+      saveWallpaper(wallpaper)
+      set((state) => ({ theme: { ...state.theme, wallpaper } }))
+    },
     setThemeMode: (mode) =>
       set((state) => ({
         theme: { ...state.theme, mode },
@@ -47,7 +50,10 @@ export const useThemeStore = create<ThemeStore>((set, get) => {
       })),
     setAccentColor: (color) =>
       set((state) => ({ theme: { ...state.theme, accentColor: color } })),
-    randomizeWallpaper: () =>
-      set((state) => ({ theme: { ...state.theme, wallpaper: getRandomWallpaper() } })),
+    randomizeWallpaper: () => {
+      const wallpaper = getRandomWallpaper()
+      saveWallpaper(wallpaper)
+      set((state) => ({ theme: { ...state.theme, wallpaper } }))
+    },
   }
 })

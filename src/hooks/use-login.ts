@@ -6,6 +6,8 @@ import {
 } from '@/shell/login/login.constants'
 import type { UserProfile } from '@/types'
 
+type LoginMode = 'known-user' | 'switch-user'
+
 interface UseLoginReturn {
   isVisible: boolean
   isFadingOut: boolean
@@ -18,6 +20,11 @@ interface UseLoginReturn {
   requireInteraction: boolean
   handleSubmit: (password: string) => void
   startLoading: () => void
+  loginMode: LoginMode
+  switchToOtherUser: () => void
+  switchToKnownUser: () => void
+  handleUsernameSubmit: (username: string, password: string) => void
+  goToSetup: () => void
 }
 
 export function useLogin(): UseLoginReturn {
@@ -29,7 +36,10 @@ export function useLogin(): UseLoginReturn {
   const completeLoading = useAuthStore((s) => s.completeLoading)
   const requireInteraction = useAuthStore((s) => s.requireInteraction)
   const startLoading = useAuthStore((s) => s.startLoading)
+  const attemptLoginWithUsername = useAuthStore((s) => s.attemptLoginWithUsername)
+  const goToSetupAction = useAuthStore((s) => s.goToSetup)
 
+  const [loginMode, setLoginMode] = useState<LoginMode>('known-user')
   const [isVisible, setIsVisible] = useState(false)
   const [isFadingOut, setIsFadingOut] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
@@ -48,6 +58,8 @@ export function useLogin(): UseLoginReturn {
       setIsFadingOut(false)
       setIsDesktopLoading(false)
       setLoadingProgress(0)
+      setIsLoading(false)
+      setLoginMode(user ? 'known-user' : 'switch-user')
     }
 
     // login → loading: progress bar boshlanadi
@@ -56,6 +68,7 @@ export function useLogin(): UseLoginReturn {
       setIsDesktopLoading(true)
       setLoadingProgress(0)
       setLoadingStatus(LOGIN_LOADING_MESSAGES[0])
+      setLoginMode('known-user')
     }
 
     // loading → authenticated o'tish
@@ -70,6 +83,15 @@ export function useLogin(): UseLoginReturn {
 
       return () => clearTimeout(timer)
     }
+
+    // setup yoki booting ga o'tganda login ekranini yashirish
+    if (phase === 'setup' || phase === 'booting') {
+      setIsVisible(false)
+      setIsFadingOut(false)
+      setIsDesktopLoading(false)
+      setIsLoading(false)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase])
 
   // Loading progress animatsiyasi
@@ -127,19 +149,48 @@ export function useLogin(): UseLoginReturn {
   }, [error, clearError])
 
   const handleSubmit = useCallback(
-    (password: string) => {
+    async (password: string) => {
       if (isLoading || !password.trim()) return
 
       setIsLoading(true)
 
-      // Kichik delay — UX uchun loading effekt
-      setTimeout(() => {
-        attemptLogin(password)
+      try {
+        await attemptLogin(password)
+      } finally {
         setIsLoading(false)
-      }, 300)
+      }
     },
     [attemptLogin, isLoading]
   )
+
+  const switchToOtherUser = useCallback(() => {
+    clearError()
+    setLoginMode('switch-user')
+  }, [clearError])
+
+  const switchToKnownUser = useCallback(() => {
+    clearError()
+    setLoginMode('known-user')
+  }, [clearError])
+
+  const handleUsernameSubmit = useCallback(
+    async (username: string, password: string) => {
+      if (isLoading || !username.trim() || !password.trim()) return
+
+      setIsLoading(true)
+
+      try {
+        await attemptLoginWithUsername(username, password)
+      } finally {
+        setIsLoading(false)
+      }
+    },
+    [attemptLoginWithUsername, isLoading]
+  )
+
+  const goToSetup = useCallback(() => {
+    goToSetupAction()
+  }, [goToSetupAction])
 
   return {
     isVisible,
@@ -153,5 +204,10 @@ export function useLogin(): UseLoginReturn {
     requireInteraction,
     handleSubmit,
     startLoading,
+    loginMode,
+    switchToOtherUser,
+    switchToKnownUser,
+    handleUsernameSubmit,
+    goToSetup,
   }
 }

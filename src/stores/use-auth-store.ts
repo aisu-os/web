@@ -1,8 +1,15 @@
 import { create } from 'zustand'
 import type { AuthPhase, UserProfile } from '@/types'
-import { getCurrentUser } from '@/services/api/auth-service'
+import { clearToken } from '@/services/api/client'
+import {
+  getSavedUsername,
+  fetchUserProfile,
+  loginUser,
+  clearSavedUsername,
+} from '@/services/api/auth-service'
 import { useProcessStore } from '@/stores/use-process-store'
 import { useWindowStore } from '@/stores/use-window-store'
+import { useThemeStore } from '@/stores/use-theme-store'
 
 interface AuthStore {
   phase: AuthPhase
@@ -13,15 +20,17 @@ interface AuthStore {
   bootCount: number
 
   initializeAuth: () => void
-  attemptLogin: (password: string) => boolean
+  attemptLogin: (password: string) => Promise<void>
+  attemptLoginWithUsername: (username: string, password: string) => Promise<void>
   completeLoading: () => void
   startLoading: () => void
   logout: () => void
   clearError: () => void
   completeSetup: () => void
+  goToSetup: () => void
 }
 
-export const useAuthStore = create<AuthStore>((set) => ({
+export const useAuthStore = create<AuthStore>((set, get) => ({
   phase: 'booting',
   user: null,
   error: null,
@@ -30,30 +39,57 @@ export const useAuthStore = create<AuthStore>((set) => ({
   bootCount: 0,
 
   initializeAuth: () => {
-    getCurrentUser().then((user) => {
-      if (!user) {
-        set({ phase: 'setup', user: null })
-        return
-      }
+    const savedUsername = getSavedUsername()
 
-      if (!user.passwordEnabled) {
-        set({ phase: 'loading', user })
-        return
-      }
-
-      set({ phase: 'login', user })
-    })
-  },
-
-  attemptLogin: (password: string) => {
-    const stored = localStorage.getItem('aisu_password')
-    if (password === stored) {
-      set({ phase: 'loading', error: null })
-      return true
+    if (savedUsername) {
+      // Username bor — avatar, displayName, wallpaper olish (parol so'rash uchun)
+      fetchUserProfile(savedUsername)
+        .then((result) => {
+          if (result) {
+            if (result.wallpaper) {
+              useThemeStore.getState().setWallpaper(result.wallpaper)
+            }
+            set({ phase: 'login', user: result.user })
+          } else {
+            clearSavedUsername()
+            set({ phase: 'login', user: null })
+          }
+        })
+        .catch(() => {
+          set({ phase: 'login', user: null })
+        })
+      return
     }
 
-    set({ error: "Noto'g'ri parol" })
-    return false
+    // Username yo'q — switch-user rejimi
+    set({ phase: 'login', user: null })
+  },
+
+  attemptLogin: async (password: string) => {
+    const { user } = get()
+    if (!user) return
+
+    const result = await loginUser(user.username, password)
+    if (result.success) {
+      if (result.wallpaper) {
+        useThemeStore.getState().setWallpaper(result.wallpaper)
+      }
+      set({ phase: 'loading', error: null, user: result.user })
+    } else {
+      set({ error: result.error ?? "Noto'g'ri parol" })
+    }
+  },
+
+  attemptLoginWithUsername: async (username: string, password: string) => {
+    const result = await loginUser(username, password)
+    if (result.success) {
+      if (result.wallpaper) {
+        useThemeStore.getState().setWallpaper(result.wallpaper)
+      }
+      set({ phase: 'loading', error: null, user: result.user })
+    } else {
+      set({ error: result.error ?? 'Xatolik yuz berdi' })
+    }
   },
 
   completeSetup: () => {
@@ -75,10 +111,16 @@ export const useAuthStore = create<AuthStore>((set) => ({
   logout: () => {
     useWindowStore.getState().clearAll()
     useProcessStore.getState().clearAll()
-    set({ phase: 'login', error: null, requireInteraction: true })
+    clearToken()
+    clearSavedUsername()
+    set({ phase: 'login', user: null, error: null, requireInteraction: false })
   },
 
   clearError: () => {
     set({ error: null })
+  },
+
+  goToSetup: () => {
+    set({ phase: 'setup', user: null })
   },
 }))

@@ -1,8 +1,11 @@
 export interface UserProfile {
   id: string
+  username: string
   displayName: string
+  email: string
   avatar: string | null
-  passwordEnabled: boolean
+  role: string
+  isActive: boolean
 }
 
 export type AuthPhase = 'booting' | 'setup' | 'login' | 'loading' | 'authenticated'
@@ -20,7 +23,11 @@ export interface SetupPasswordData {
   confirmPassword: string
 }
 
-export interface SetupUserData extends SetupAccountData {
+export interface SetupUserData {
+  email: string
+  username: string
+  displayName: string
   password: string
-  avatar: string | null
+  avatarFile: File | null
+  avatarEmoji: string | null
 }
