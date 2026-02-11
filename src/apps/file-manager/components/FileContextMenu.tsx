@@ -6,6 +6,7 @@ import { openFile } from '@/lib/open-file'
 import { useClickOutside } from '@/hooks/use-click-outside'
 import { useMenuPosition } from '@/hooks/use-menu-position'
 import { useGetInfoStore } from '@/stores/use-get-info-store'
+import { useFileSystemStore } from '@/stores/use-file-system-store'
 import { useFileManagerStore } from '../hooks/use-file-manager-store'
 import { useFileSystem } from '../hooks/use-file-system'
 import {
@@ -58,6 +59,11 @@ const FileContextMenu = () => {
           openGetInfo(pathToInspect)
           break
         }
+        case 'move-to-trash':
+          if (targetPath) {
+            useFileSystemStore.getState().deleteNode(targetPath)
+          }
+          break
       }
     },
     [contextMenu.targetPath, closeContextMenu, startCreating, startRenaming, navigateTo, getNode, currentPath, openGetInfo]

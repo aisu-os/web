@@ -1,5 +1,6 @@
 import { useMemo, useEffect } from 'react'
 import { cn } from '@/lib/cn'
+import { useFileSystemStore } from '@/stores/use-file-system-store'
 import {
   createFileManagerStore,
   FileManagerStoreContext,
@@ -32,6 +33,15 @@ const FileManagerInner = () => {
       if (e.metaKey && e.shiftKey && e.key === 'N') {
         e.preventDefault()
         startCreating('directory')
+        return
+      }
+      // ⌘⌫ — Move to Trash
+      if (e.metaKey && e.key === 'Backspace' && selectedPaths.length > 0) {
+        e.preventDefault()
+        const fs = useFileSystemStore.getState()
+        for (const path of selectedPaths) {
+          fs.deleteNode(path)
+        }
         return
       }
       // Enter — Rename selected item (macOS Finder behavior)

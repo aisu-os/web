@@ -387,7 +387,7 @@ export const FILE_CONTEXT_MENU: ContextMenuItem[] = [
   { label: 'Copy', shortcut: '⌘C' },
   { label: 'Duplicate', shortcut: '⌘D' },
   { label: '', separator: true },
-  { label: 'Move to Trash', shortcut: '⌘⌫' },
+  { label: 'Move to Trash', shortcut: '⌘⌫', action: 'move-to-trash' },
 ]
 
 export const DIRECTORY_CONTEXT_MENU: ContextMenuItem[] = [
@@ -400,7 +400,7 @@ export const DIRECTORY_CONTEXT_MENU: ContextMenuItem[] = [
   { label: 'Copy', shortcut: '⌘C' },
   { label: 'Duplicate', shortcut: '⌘D' },
   { label: '', separator: true },
-  { label: 'Move to Trash', shortcut: '⌘⌫' },
+  { label: 'Move to Trash', shortcut: '⌘⌫', action: 'move-to-trash' },
 ]
 
 export const BACKGROUND_CONTEXT_MENU: ContextMenuItem[] = [

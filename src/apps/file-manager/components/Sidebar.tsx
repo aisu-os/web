@@ -1,7 +1,8 @@
 import { cn } from '@/lib/cn'
+import { useWindowStore } from '@/stores/use-window-store'
 import { useFileManagerStore } from '../hooks/use-file-manager-store'
 import { SIDEBAR_FAVORITES, SIDEBAR_TAGS } from '../file-manager.constants'
-import { getSidebarIcon } from '../file-manager-icons'
+import { getSidebarIcon, TrashSidebarIcon } from '../file-manager-icons'
 import SidebarItem from './SidebarItem'
 
 const Sidebar = () => {
@@ -36,6 +37,21 @@ const Sidebar = () => {
             />
           )
         })}
+      </div>
+
+      {/* Trash */}
+      <div className="mt-4 mb-1">
+        <span className="px-3 text-[10px] font-semibold uppercase tracking-wider text-white/30">
+          Trash
+        </span>
+      </div>
+      <div className="flex flex-col gap-0.5">
+        <SidebarItem
+          icon={<TrashSidebarIcon size={16} />}
+          label="Trash"
+          isActive={false}
+          onClick={() => useWindowStore.getState().openWindow('trash')}
+        />
       </div>
 
       {/* Tags */}

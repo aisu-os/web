@@ -11,6 +11,8 @@ interface FileNodeDTO {
   mime_type: string | null;
   size: number;
   is_trashed: boolean;
+  original_path: string | null;
+  trashed_at: string | null;
   created_at: string;
   updated_at: string;
   children?: FileNodeDTO[];
@@ -45,6 +47,9 @@ function mapNode(dto: FileNodeDTO): FileNode {
     children: dto.children?.map(mapNode),
     createdAt: new Date(dto.created_at),
     updatedAt: new Date(dto.updated_at),
+    isTrashed: dto.is_trashed || undefined,
+    originalPath: dto.original_path ?? undefined,
+    trashedAt: dto.trashed_at ? new Date(dto.trashed_at) : undefined,
   };
 }
 

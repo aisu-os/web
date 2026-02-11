@@ -16,6 +16,7 @@ import { notificationDemoConfig } from './notification-demo/config'
 import { settingsConfig } from './settings/config'
 import { textEditorConfig } from './text-editor/config'
 import { appMarketConfig } from './app-market/config'
+import { trashConfig } from './trash/config'
 
 export const appRegistry: Record<string, AppRegistryEntry> = {
   'file-manager': {
@@ -51,5 +52,9 @@ export const appRegistry: Record<string, AppRegistryEntry> = {
   'app-market': {
     config: appMarketConfig,
     component: lazy(() => import('./app-market/AppMarket')),
+  },
+  'trash': {
+    config: trashConfig,
+    component: lazy(() => import('./trash/Trash')),
   },
 }

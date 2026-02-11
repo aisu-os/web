@@ -4,6 +4,7 @@ import { Z_INDEX } from '@/lib/constants'
 import {
   DOCK_ITEMS,
   DOCK_SETTINGS_ITEM,
+  DOCK_TRASH_ITEM,
   DOCK_ENTRANCE_DELAY,
   DOCK_PADDING_X,
   DOCK_PADDING_Y,
@@ -82,6 +83,8 @@ const Dock = ({ isVisible }: DockProps) => {
       </AnimatePresence>
 
       <DockItem item={DOCK_SETTINGS_ITEM} mouseX={mouseX} />
+      <DockSeparator />
+      <DockItem item={DOCK_TRASH_ITEM} mouseX={mouseX} />
     </motion.div>
   )
 }

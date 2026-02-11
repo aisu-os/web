@@ -157,6 +157,53 @@ export const NotificationDemoIcon = ({ size = 48 }: IconProps) => {
   )
 }
 
+export const TrashIcon = ({ size = 48, isEmpty = true }: IconProps & { isEmpty?: boolean }) => {
+  const id = useId()
+  const gradId = `${id}-trash`
+  return (
+    <svg width={size} height={size} viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id={gradId} x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#38BDF8" />
+          <stop offset="100%" stopColor="#0EA5E9" />
+        </linearGradient>
+      </defs>
+      {/* Trash can body */}
+      <path
+        d="M16 16L17.5 38C17.5 39.1 18.4 40 19.5 40H28.5C29.6 40 30.5 39.1 30.5 38L32 16"
+        stroke={`url(#${gradId})`}
+        strokeWidth="2"
+        fill={`url(#${gradId})`}
+        fillOpacity={isEmpty ? 0.05 : 0.15}
+        strokeLinejoin="round"
+      />
+      {/* Lid */}
+      <path
+        d="M13 16H35"
+        stroke={`url(#${gradId})`}
+        strokeWidth="2"
+        strokeLinecap="round"
+      />
+      {/* Handle */}
+      <path
+        d="M20 16V13C20 11.9 20.9 11 22 11H26C27.1 11 28 11.9 28 13V16"
+        stroke={`url(#${gradId})`}
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      {/* Lines inside (shown when not empty) */}
+      {!isEmpty && (
+        <>
+          <line x1="21" y1="22" x2="21" y2="34" stroke="#7DD3FC" strokeWidth="1.5" strokeLinecap="round" opacity="0.4" />
+          <line x1="24" y1="22" x2="24" y2="34" stroke="#7DD3FC" strokeWidth="1.5" strokeLinecap="round" opacity="0.4" />
+          <line x1="27" y1="22" x2="27" y2="34" stroke="#7DD3FC" strokeWidth="1.5" strokeLinecap="round" opacity="0.4" />
+        </>
+      )}
+    </svg>
+  )
+}
+
 export const SettingsIcon = ({ size = 48 }: IconProps) => {
   const id = useId()
   const gradId = `${id}-settings`

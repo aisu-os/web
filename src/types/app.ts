@@ -36,3 +36,4 @@ export type SystemAppId =
   | 'app-market'
   | 'image-viewer'
   | 'notification-demo'
+  | 'trash'

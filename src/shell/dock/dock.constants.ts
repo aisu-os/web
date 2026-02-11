@@ -8,6 +8,7 @@ import {
   AppMarketIcon,
   NotificationDemoIcon,
   SettingsIcon,
+  TrashIcon,
 } from './dock-icons'
 
 // Sizing
@@ -38,4 +39,10 @@ export const DOCK_SETTINGS_ITEM: DockItemConfig = {
   id: 'settings',
   label: 'Settings',
   icon: SettingsIcon,
+}
+
+export const DOCK_TRASH_ITEM: DockItemConfig = {
+  id: 'trash',
+  label: 'Trash',
+  icon: TrashIcon,
 }

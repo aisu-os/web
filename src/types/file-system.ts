@@ -9,4 +9,7 @@ export interface FileNode {
   children?: FileNode[]
   createdAt?: Date
   updatedAt?: Date
+  isTrashed?: boolean
+  originalPath?: string
+  trashedAt?: Date
 }

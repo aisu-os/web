@@ -244,6 +244,14 @@ export const VideosSidebarIcon = ({ size = 16 }: IconProps) => (
   </svg>
 )
 
+export const TrashSidebarIcon = ({ size = 16 }: IconProps) => (
+  <svg width={size} height={size} viewBox="0 0 16 16" fill="none">
+    <path d="M5 5.5L5.5 13C5.5 13.28 5.72 13.5 6 13.5H10C10.28 13.5 10.5 13.28 10.5 13L11 5.5" stroke="#7DD3FC" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
+    <path d="M4 5.5H12" stroke="#7DD3FC" strokeWidth="1.2" strokeLinecap="round" />
+    <path d="M6.5 5.5V4C6.5 3.45 6.95 3 7.5 3H8.5C9.05 3 9.5 3.45 9.5 4V5.5" stroke="#7DD3FC" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+)
+
 const SIDEBAR_ICON_MAP: Record<string, React.ComponentType<IconProps>> = {
   desktop: DesktopSidebarIcon,
   documents: DocumentsSidebarIcon,
@@ -251,6 +259,7 @@ const SIDEBAR_ICON_MAP: Record<string, React.ComponentType<IconProps>> = {
   pictures: PicturesSidebarIcon,
   music: MusicSidebarIcon,
   videos: VideosSidebarIcon,
+  trash: TrashSidebarIcon,
 }
 
 export function getSidebarIcon(iconKey: string): React.ComponentType<IconProps> {

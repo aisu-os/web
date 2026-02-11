@@ -77,6 +77,8 @@ interface FileSystemState {
   isLoaded: boolean
   isLoading: boolean
   syncError: string | null
+  trashItems: FileNode[]
+  isTrashLoading: boolean
 }
 
 interface FileSystemActions {
@@ -86,10 +88,14 @@ interface FileSystemActions {
   createNode: (parentPath: string, name: string, type: FileType) => FileNode | null
   renameNode: (path: string, newName: string) => FileNode | null
   deleteNode: (path: string) => boolean
+  permanentDelete: (path: string) => boolean
   generateUniqueName: (parentPath: string, baseName: string) => string
   moveNode: (sourcePath: string, destParentPath: string) => { oldPath: string; newPath: string } | null
   copyNode: (sourcePath: string, destParentPath: string) => { oldPath: string; newPath: string } | null
   loadTree: () => Promise<void>
+  fetchTrash: () => Promise<void>
+  restoreFromTrash: (path: string) => Promise<void>
+  emptyTrash: () => Promise<void>
   resetStore: () => void
 }
 
@@ -99,6 +105,8 @@ export const useFileSystemStore = create<FileSystemState & FileSystemActions>((s
   isLoaded: false,
   isLoading: false,
   syncError: null,
+  trashItems: [],
+  isTrashLoading: false,
 
   loadTree: async () => {
     set({ isLoading: true, syncError: null })
@@ -130,6 +138,8 @@ export const useFileSystemStore = create<FileSystemState & FileSystemActions>((s
       isLoaded: false,
       isLoading: false,
       syncError: null,
+      trashItems: [],
+      isTrashLoading: false,
     })
   },
 
@@ -255,8 +265,25 @@ export const useFileSystemStore = create<FileSystemState & FileSystemActions>((s
     set({ root: newRoot, nodeMap: newNodeMap })
 
     // Background API sync
-    fsApi.deleteNode(path).catch(() => {
+    fsApi.deleteNode(path).then(() => {
+      // Agar trash oldin yuklangan bo'lsa, yangilash
+      if (get().trashItems.length > 0) {
+        get().fetchTrash()
+      }
+    }).catch(() => {
       set({ syncError: `Failed to delete ${path}` })
+    })
+
+    return true
+  },
+
+  permanentDelete: (path) => {
+    // trashItems dan optimistik olib tashlash
+    set({ trashItems: get().trashItems.filter((item) => item.path !== path) })
+
+    fsApi.deleteNode(path, true).catch(() => {
+      set({ syncError: `Failed to permanently delete ${path}` })
+      get().fetchTrash()
     })
 
     return true
@@ -346,5 +373,40 @@ export const useFileSystemStore = create<FileSystemState & FileSystemActions>((s
     })
 
     return { oldPath: sourcePath, newPath }
+  },
+
+  fetchTrash: async () => {
+    set({ isTrashLoading: true })
+    try {
+      const items = await fsApi.fetchTrash()
+      set({ trashItems: items, isTrashLoading: false })
+    } catch {
+      set({ isTrashLoading: false, syncError: 'Failed to load trash' })
+    }
+  },
+
+  restoreFromTrash: async (path) => {
+    // Optimistik: trashItems dan olib tashlash
+    const prev = get().trashItems
+    set({ trashItems: prev.filter((item) => item.path !== path) })
+
+    try {
+      await fsApi.restoreNode(path)
+      // Tree ni yangilash
+      await get().loadTree()
+    } catch {
+      set({ trashItems: prev, syncError: `Failed to restore ${path}` })
+    }
+  },
+
+  emptyTrash: async () => {
+    const prev = get().trashItems
+    set({ trashItems: [] })
+
+    try {
+      await fsApi.emptyTrash()
+    } catch {
+      set({ trashItems: prev, syncError: 'Failed to empty trash' })
+    }
   },
 }))
