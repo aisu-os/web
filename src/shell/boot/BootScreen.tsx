@@ -1,31 +1,32 @@
-import { useMemo, useEffect } from 'react'
-import { cn } from '@/lib/cn'
-import { useBoot } from '@/hooks/use-boot'
-import { useCursorStore } from '@/stores/use-cursor-store'
-import BootLogo from './BootLogo'
-import { PARTICLE_COUNT, HEX_GRID_SPACING, VERSION_TEXT } from './boot.constants'
-import './boot-screen.css'
+import { useMemo, useEffect } from "react";
+import { cn } from "@/lib/cn";
+import { useBoot } from "@/hooks/use-boot";
+import { useCursorStore } from "@/stores/use-cursor-store";
+import BootLogo from "./BootLogo";
+import { PARTICLE_COUNT, HEX_GRID_SPACING } from "./boot.constants";
+import { VERSION_TEXT } from "@/constants/app";
+import "./boot-screen.css";
 
 interface BootScreenProps {
-  onComplete?: () => void
+  onComplete?: () => void;
 }
 
 function generateHexGrid(spacing: number) {
-  const cols = Math.ceil(window.innerWidth / spacing) + 1
-  const rows = Math.ceil(window.innerHeight / spacing) + 1
-  const dots: Array<{ x: number; y: number; key: string }> = []
+  const cols = Math.ceil(window.innerWidth / spacing) + 1;
+  const rows = Math.ceil(window.innerHeight / spacing) + 1;
+  const dots: Array<{ x: number; y: number; key: string }> = [];
 
   for (let r = 0; r < rows; r++) {
     for (let c = 0; c < cols; c++) {
-      const offsetX = r % 2 === 0 ? 0 : spacing / 2
+      const offsetX = r % 2 === 0 ? 0 : spacing / 2;
       dots.push({
         x: c * spacing + offsetX,
         y: r * spacing,
         key: `${r}-${c}`,
-      })
+      });
     }
   }
-  return dots
+  return dots;
 }
 
 function generateParticles(count: number) {
@@ -36,30 +37,30 @@ function generateParticles(count: number) {
     duration: Math.random() * 8 + 6,
     delay: Math.random() * 5,
     opacity: Math.random() * 0.25 + 0.05,
-  }))
+  }));
 }
 
 const BootScreen = ({ onComplete }: BootScreenProps) => {
   const { isVisible, isFadingOut, statusText, isStatusFading } = useBoot({
     onComplete,
-  })
+  });
 
   useEffect(() => {
     if (isVisible) {
-      useCursorStore.getState().setCursorType('wait')
+      useCursorStore.getState().setCursorType("wait");
     }
     return () => {
-      useCursorStore.getState().resetCursor()
-    }
-  }, [isVisible])
+      useCursorStore.getState().resetCursor();
+    };
+  }, [isVisible]);
 
-  const hexDots = useMemo(() => generateHexGrid(HEX_GRID_SPACING), [])
-  const particles = useMemo(() => generateParticles(PARTICLE_COUNT), [])
+  const hexDots = useMemo(() => generateHexGrid(HEX_GRID_SPACING), []);
+  const particles = useMemo(() => generateParticles(PARTICLE_COUNT), []);
 
-  if (!isVisible) return null
+  if (!isVisible) return null;
 
   return (
-    <div className={cn('boot-screen', isFadingOut && 'boot-screen--fading')}>
+    <div className={cn("boot-screen", isFadingOut && "boot-screen--fading")}>
       {/* Background aurora blobs */}
       <div className="boot-aurora">
         <div className="boot-aurora__blob" />
@@ -90,7 +91,7 @@ const BootScreen = ({ onComplete }: BootScreenProps) => {
                 height: p.size,
                 left: `${p.left}%`,
                 bottom: -10,
-                '--p-opacity': p.opacity,
+                "--p-opacity": p.opacity,
                 animationDuration: `${p.duration}s, 1s`,
                 animationDelay: `${p.delay}s, ${p.delay}s`,
               } as React.CSSProperties
@@ -138,8 +139,8 @@ const BootScreen = ({ onComplete }: BootScreenProps) => {
           <div className="boot-loading__text">
             <span
               className={cn(
-                'boot-loading__status',
-                isStatusFading && 'boot-loading__status--fading'
+                "boot-loading__status",
+                isStatusFading && "boot-loading__status--fading",
               )}
             >
               {statusText}
@@ -152,7 +153,7 @@ const BootScreen = ({ onComplete }: BootScreenProps) => {
       {/* Version text */}
       <div className="boot-version">{VERSION_TEXT}</div>
     </div>
-  )
-}
+  );
+};
 
-export default BootScreen
+export default BootScreen;
