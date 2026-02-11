@@ -1,31 +1,31 @@
-import { cn } from '@/lib/cn'
-import { useSetup } from '@/hooks/use-setup'
-import { AnimatePresence, motion } from 'framer-motion'
-import BootLogo from '@/shell/boot/BootLogo'
-import { VERSION_TEXT } from '@/shell/boot/boot.constants'
-import SetupWelcome from './SetupWelcome'
-import SetupAccount from './SetupAccount'
-import SetupPassword from './SetupPassword'
-import SetupAvatar from './SetupAvatar'
-import SetupComplete from './SetupComplete'
-import './setup-screen.css'
+import { cn } from "@/lib/cn";
+import { useSetup } from "@/hooks/use-setup";
+import { AnimatePresence, motion } from "framer-motion";
+import BootLogo from "@/shell/boot/BootLogo";
+import { VERSION_TEXT } from "@/constants/app";
+import SetupWelcome from "./SetupWelcome";
+import SetupAccount from "./SetupAccount";
+import SetupPassword from "./SetupPassword";
+import SetupAvatar from "./SetupAvatar";
+import SetupComplete from "./SetupComplete";
+import "./setup-screen.css";
 
 const stepVariants = {
   enter: { opacity: 0, x: 60, scale: 0.98 },
   center: { opacity: 1, x: 0, scale: 1 },
   exit: { opacity: 0, x: -60, scale: 0.98 },
-}
+};
 
 const SetupScreen = () => {
-  const setup = useSetup()
+  const setup = useSetup();
 
-  if (!setup.isVisible) return null
+  if (!setup.isVisible) return null;
 
   const renderStep = () => {
     switch (setup.currentStep) {
-      case 'welcome':
-        return <SetupWelcome onContinue={setup.goNext} />
-      case 'account':
+      case "welcome":
+        return <SetupWelcome onContinue={setup.goNext} />;
+      case "account":
         return (
           <SetupAccount
             data={setup.accountData}
@@ -33,8 +33,8 @@ const SetupScreen = () => {
             onChange={setup.updateAccountData}
             onNext={setup.goNext}
           />
-        )
-      case 'password':
+        );
+      case "password":
         return (
           <SetupPassword
             data={setup.passwordData}
@@ -42,8 +42,8 @@ const SetupScreen = () => {
             onChange={setup.updatePasswordData}
             onNext={setup.goNext}
           />
-        )
-      case 'avatar':
+        );
+      case "avatar":
         return (
           <SetupAvatar
             selected={setup.selectedAvatar}
@@ -52,8 +52,8 @@ const SetupScreen = () => {
             onUpload={setup.uploadAvatar}
             onNext={setup.goNext}
           />
-        )
-      case 'complete':
+        );
+      case "complete":
         return (
           <SetupComplete
             userName={setup.createdUserName}
@@ -61,17 +61,17 @@ const SetupScreen = () => {
             error={setup.submitError}
             onComplete={setup.completeSetup}
           />
-        )
+        );
       default:
-        return null
+        return null;
     }
-  }
+  };
 
   return (
     <div
       className={cn(
-        'setup-screen',
-        setup.isFadingOut && 'setup-screen--fading'
+        "setup-screen",
+        setup.isFadingOut && "setup-screen--fading",
       )}
     >
       {/* Background aurora */}
@@ -90,20 +90,22 @@ const SetupScreen = () => {
           <BootLogo />
         </div>
 
-        {setup.currentStep !== 'welcome' && setup.currentStep !== 'complete' && (
-          <div className="setup-dots">
-            {['account', 'password', 'avatar'].map((step, i) => (
-              <div
-                key={step}
-                className={cn(
-                  'setup-dots__dot',
-                  setup.currentStepIndex > i + 1 && 'setup-dots__dot--done',
-                  setup.currentStepIndex === i + 1 && 'setup-dots__dot--active'
-                )}
-              />
-            ))}
-          </div>
-        )}
+        {setup.currentStep !== "welcome" &&
+          setup.currentStep !== "complete" && (
+            <div className="setup-dots">
+              {["account", "password", "avatar"].map((step, i) => (
+                <div
+                  key={step}
+                  className={cn(
+                    "setup-dots__dot",
+                    setup.currentStepIndex > i + 1 && "setup-dots__dot--done",
+                    setup.currentStepIndex === i + 1 &&
+                      "setup-dots__dot--active",
+                  )}
+                />
+              ))}
+            </div>
+          )}
       </div>
 
       {/* Step content */}
@@ -139,7 +141,7 @@ const SetupScreen = () => {
             strokeWidth="2"
             strokeLinecap="round"
             strokeLinejoin="round"
-            style={{ marginRight: 4, verticalAlign: 'middle' }}
+            style={{ marginRight: 4, verticalAlign: "middle" }}
           >
             <polyline points="15 18 9 12 15 6" />
           </svg>
@@ -150,7 +152,7 @@ const SetupScreen = () => {
       {/* Footer */}
       <div className="setup-footer">{VERSION_TEXT}</div>
     </div>
-  )
-}
+  );
+};
 
-export default SetupScreen
+export default SetupScreen;

@@ -7,21 +7,20 @@ interface LoginAvatarProps {
 }
 
 const LoginAvatar = ({ user, isSuccess }: LoginAvatarProps) => {
-  const isGradient = user.avatar?.startsWith('linear-gradient')
+  const isImageUrl = user.avatar?.startsWith('/') || user.avatar?.startsWith('http')
 
   return (
     <div className={cn('login-avatar', isSuccess && 'login-avatar--success')}>
-      {isGradient ? (
-        <div
-          className="login-avatar__placeholder"
-          style={{ background: user.avatar!, fontSize: 0 }}
-        />
-      ) : user.avatar ? (
+      {user.avatar && isImageUrl ? (
         <img
           src={user.avatar}
           alt={user.displayName}
           className="login-avatar__image"
         />
+      ) : user.avatar ? (
+        <div className="login-avatar__placeholder">
+          {user.avatar}
+        </div>
       ) : (
         <div className="login-avatar__placeholder">
           {user.displayName.charAt(0).toUpperCase()}
