@@ -71,6 +71,41 @@ const emptyRoot: FileNode = {
   children: [],
 }
 
+const isDesktopChild = (p: string) => p.startsWith('/Desktop/') && p.split('/').length === 3
+
+function syncDesktopAfterChange(affectedPath: string, action: 'add' | 'remove' | 'rename', oldPath?: string) {
+  import('@/stores/use-desktop-store').then(({ useDesktopStore }) => {
+    const desktop = useDesktopStore.getState()
+
+    if (action === 'add' && isDesktopChild(affectedPath)) {
+      if (!desktop.getItemByFsPath(affectedPath)) {
+        desktop.addItemFromFileSystem(affectedPath, desktop.getFreePosition())
+      }
+    }
+
+    if (action === 'remove' && isDesktopChild(affectedPath)) {
+      desktop.removeItemByFsPath(affectedPath)
+    }
+
+    if (action === 'rename' && oldPath) {
+      if (isDesktopChild(oldPath) && isDesktopChild(affectedPath)) {
+        const item = desktop.getItemByFsPath(oldPath)
+        if (item) {
+          const newName = affectedPath.split('/').pop()!
+          desktop.renameItem(item.id, newName)
+          desktop.updateItemFsPath(item.id, affectedPath)
+        }
+      } else if (isDesktopChild(oldPath)) {
+        desktop.removeItemByFsPath(oldPath)
+      } else if (isDesktopChild(affectedPath)) {
+        if (!desktop.getItemByFsPath(affectedPath)) {
+          desktop.addItemFromFileSystem(affectedPath, desktop.getFreePosition())
+        }
+      }
+    }
+  })
+}
+
 interface FileSystemState {
   root: FileNode
   nodeMap: Map<string, FileNode>
@@ -208,6 +243,8 @@ export const useFileSystemStore = create<FileSystemState & FileSystemActions>((s
       set({ syncError: `Failed to create ${name}` })
     })
 
+    syncDesktopAfterChange(newPath, 'add')
+
     return newNodeMap.get(newPath) ?? null
   },
 
@@ -248,6 +285,8 @@ export const useFileSystemStore = create<FileSystemState & FileSystemActions>((s
       set({ syncError: `Failed to rename ${path}` })
     })
 
+    syncDesktopAfterChange(newPath, 'rename', path)
+
     return newNodeMap.get(newPath) ?? null
   },
 
@@ -263,6 +302,8 @@ export const useFileSystemStore = create<FileSystemState & FileSystemActions>((s
 
     const newNodeMap = buildNodeMap(newRoot)
     set({ root: newRoot, nodeMap: newNodeMap })
+
+    syncDesktopAfterChange(path, 'remove')
 
     // Background API sync
     fsApi.deleteNode(path).then(() => {
@@ -336,6 +377,9 @@ export const useFileSystemStore = create<FileSystemState & FileSystemActions>((s
       set({ syncError: `Failed to move ${sourcePath}` })
     })
 
+    syncDesktopAfterChange(sourcePath, 'remove')
+    syncDesktopAfterChange(newPath, 'add')
+
     return { oldPath: sourcePath, newPath }
   },
 
@@ -371,6 +415,8 @@ export const useFileSystemStore = create<FileSystemState & FileSystemActions>((s
     fsApi.copyNode(sourcePath, destParentPath).catch(() => {
       set({ syncError: `Failed to copy ${sourcePath}` })
     })
+
+    syncDesktopAfterChange(newPath, 'add')
 
     return { oldPath: sourcePath, newPath }
   },

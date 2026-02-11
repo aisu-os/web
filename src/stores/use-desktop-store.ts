@@ -68,6 +68,8 @@ interface DesktopStore {
   addItemFromFileSystem: (fsPath: string, position: { x: number; y: number }) => void
   removeItemByFsPath: (fsPath: string) => void
   getItemByFsPath: (fsPath: string) => DesktopItem | undefined
+  updateItemFsPath: (id: string, newFsPath: string) => void
+  getFreePosition: () => { x: number; y: number }
 }
 
 export const useDesktopStore = create<DesktopStore>((set, get) => ({
@@ -296,4 +298,13 @@ export const useDesktopStore = create<DesktopStore>((set, get) => ({
   getItemByFsPath: (fsPath) => {
     return get().items.find((i) => i.fsPath === fsPath)
   },
+
+  updateItemFsPath: (id, newFsPath) =>
+    set((state) => ({
+      items: state.items.map((item) =>
+        item.id === id ? { ...item, fsPath: newFsPath } : item
+      ),
+    })),
+
+  getFreePosition: () => findFreePosition(get().items),
 }))
