@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import type { DesktopItem, FileType } from '@/types'
 import { useFileSystemStore } from '@/stores/use-file-system-store'
+import { updateDesktopPositions } from '@/services/api/fs-service'
 
 interface ContextMenuState {
   isOpen: boolean
@@ -38,6 +39,24 @@ function generateUniqueDesktopName(items: DesktopItem[], baseName: string): stri
     counter++
   }
   return `${baseName} ${counter}`
+}
+
+let positionSyncTimer: ReturnType<typeof setTimeout> | null = null
+const POSITION_SYNC_DELAY = 500
+
+function schedulePositionSync(items: DesktopItem[]) {
+  if (positionSyncTimer) clearTimeout(positionSyncTimer)
+  positionSyncTimer = setTimeout(() => {
+    positionSyncTimer = null
+    const positions = items.map((item) => ({
+      path: item.fsPath,
+      x: Math.round(item.position.x),
+      y: Math.round(item.position.y),
+    }))
+    updateDesktopPositions(positions).catch(() => {
+      // Silent failure — pozitsiya UI'da to'g'ri, keyingi reload'da eski bo'lishi mumkin
+    })
+  }, POSITION_SYNC_DELAY)
 }
 
 interface DesktopStore {
@@ -80,28 +99,54 @@ export const useDesktopStore = create<DesktopStore>((set, get) => ({
     const children = fs.getChildren('/Desktop')
     if (children.length === 0) return
 
-    const startX = 24
-    const startY = 48
-    const stepY = 104
+    // Avval saqlangan pozitsiyali elementlarni joylashtirish
+    const itemsWithPos: DesktopItem[] = []
+    const nodesWithoutPos: typeof children = []
 
-    const items: DesktopItem[] = children.map((node, i) => ({
-      id: `desktop-${node.path}`,
-      name: node.name,
-      type: node.type,
-      icon: getIconForType(node.type),
-      position: { x: startX, y: startY + i * stepY },
-      fsPath: node.path,
-    }))
+    for (const node of children) {
+      if (node.desktopX != null && node.desktopY != null) {
+        itemsWithPos.push({
+          id: `desktop-${node.path}`,
+          name: node.name,
+          type: node.type,
+          icon: getIconForType(node.type),
+          position: { x: node.desktopX, y: node.desktopY },
+          fsPath: node.path,
+        })
+      } else {
+        nodesWithoutPos.push(node)
+      }
+    }
 
-    set({ items })
+    // Pozitsiyasi yo'q elementlarga bo'sh joy topish
+    for (const node of nodesWithoutPos) {
+      const pos = findFreePosition(itemsWithPos)
+      itemsWithPos.push({
+        id: `desktop-${node.path}`,
+        name: node.name,
+        type: node.type,
+        icon: getIconForType(node.type),
+        position: pos,
+        fsPath: node.path,
+      })
+    }
+
+    set({ items: itemsWithPos })
+
+    // Pozitsiyasi yo'q elementlar uchun backend'ga saqlash
+    if (nodesWithoutPos.length > 0) {
+      schedulePositionSync(itemsWithPos)
+    }
   },
 
   updateItemPosition: (id, position) =>
-    set((state) => ({
-      items: state.items.map((item) =>
+    set((state) => {
+      const newItems = state.items.map((item) =>
         item.id === id ? { ...item, position } : item
-      ),
-    })),
+      )
+      schedulePositionSync(newItems)
+      return { items: newItems }
+    }),
 
   addItem: (item) =>
     set((state) => ({ items: [...state.items, item] })),
@@ -176,12 +221,16 @@ export const useDesktopStore = create<DesktopStore>((set, get) => ({
     const fs = useFileSystemStore.getState()
     fs.createNode('/Desktop', uniqueName, type)
 
-    set((state) => ({
-      items: [...state.items, newItem],
-      editingItemId: newItem.id,
-      editingMode: 'create',
-      selectedIds: [newItem.id],
-    }))
+    set((state) => {
+      const newItems = [...state.items, newItem]
+      schedulePositionSync(newItems)
+      return {
+        items: newItems,
+        editingItemId: newItem.id,
+        editingMode: 'create',
+        selectedIds: [newItem.id],
+      }
+    })
   },
 
   startRenaming: (id) => {
@@ -284,7 +333,11 @@ export const useDesktopStore = create<DesktopStore>((set, get) => ({
       position,
       fsPath,
     }
-    set((state) => ({ items: [...state.items, newItem] }))
+    set((state) => {
+      const newItems = [...state.items, newItem]
+      schedulePositionSync(newItems)
+      return { items: newItems }
+    })
   },
 
   removeItemByFsPath: (fsPath) =>

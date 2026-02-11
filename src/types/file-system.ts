@@ -12,4 +12,6 @@ export interface FileNode {
   isTrashed?: boolean
   originalPath?: string
   trashedAt?: Date
+  desktopX?: number
+  desktopY?: number
 }

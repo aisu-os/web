@@ -13,6 +13,8 @@ interface FileNodeDTO {
   is_trashed: boolean;
   original_path: string | null;
   trashed_at: string | null;
+  desktop_x: number | null;
+  desktop_y: number | null;
   created_at: string;
   updated_at: string;
   children?: FileNodeDTO[];
@@ -50,6 +52,8 @@ function mapNode(dto: FileNodeDTO): FileNode {
     isTrashed: dto.is_trashed || undefined,
     originalPath: dto.original_path ?? undefined,
     trashedAt: dto.trashed_at ? new Date(dto.trashed_at) : undefined,
+    desktopX: dto.desktop_x ?? undefined,
+    desktopY: dto.desktop_y ?? undefined,
   };
 }
 
@@ -207,4 +211,10 @@ export async function searchFiles(
   }
   const dtos = await apiGet<FileNodeDTO[]>(url);
   return dtos.map(mapNode);
+}
+
+export async function updateDesktopPositions(
+  positions: { path: string; x: number; y: number }[],
+): Promise<void> {
+  await apiPatch<unknown>("/fs/desktop-positions", { positions });
 }
