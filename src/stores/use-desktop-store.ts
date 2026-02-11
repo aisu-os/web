@@ -1,6 +1,5 @@
 import { create } from 'zustand'
 import type { DesktopItem, FileType } from '@/types'
-import { DEFAULT_DESKTOP_ITEMS } from '@/shell/desktop/desktop.constants'
 import { useFileSystemStore } from '@/stores/use-file-system-store'
 
 interface ContextMenuState {
@@ -47,6 +46,7 @@ interface DesktopStore {
   addItem: (item: DesktopItem) => void
   removeItem: (id: string) => void
   renameItem: (id: string, newName: string) => void
+  loadDesktopItems: () => void
 
   selectedIds: string[]
   selectItem: (id: string, additive?: boolean) => void
@@ -71,7 +71,28 @@ interface DesktopStore {
 }
 
 export const useDesktopStore = create<DesktopStore>((set, get) => ({
-  items: DEFAULT_DESKTOP_ITEMS,
+  items: [],
+
+  loadDesktopItems: () => {
+    const fs = useFileSystemStore.getState()
+    const children = fs.getChildren('/Desktop')
+    if (children.length === 0) return
+
+    const startX = 24
+    const startY = 48
+    const stepY = 104
+
+    const items: DesktopItem[] = children.map((node, i) => ({
+      id: `desktop-${node.path}`,
+      name: node.name,
+      type: node.type,
+      icon: getIconForType(node.type),
+      position: { x: startX, y: startY + i * stepY },
+      fsPath: node.path,
+    }))
+
+    set({ items })
+  },
 
   updateItemPosition: (id, position) =>
     set((state) => ({

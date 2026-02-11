@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import type { FileNode, FileType } from '@/types'
 import { MOCK_FILE_SYSTEM } from '@/apps/file-manager/file-manager.constants'
+import * as fsApi from '@/services/api/fs-service'
 
 function deepClone(node: FileNode): FileNode {
   return {
@@ -63,9 +64,19 @@ function updateDescendantPaths(node: FileNode, oldPath: string, newPath: string)
   return updatedNode
 }
 
+const emptyRoot: FileNode = {
+  name: '/',
+  path: '/',
+  type: 'directory',
+  children: [],
+}
+
 interface FileSystemState {
   root: FileNode
   nodeMap: Map<string, FileNode>
+  isLoaded: boolean
+  isLoading: boolean
+  syncError: string | null
 }
 
 interface FileSystemActions {
@@ -78,13 +89,49 @@ interface FileSystemActions {
   generateUniqueName: (parentPath: string, baseName: string) => string
   moveNode: (sourcePath: string, destParentPath: string) => { oldPath: string; newPath: string } | null
   copyNode: (sourcePath: string, destParentPath: string) => { oldPath: string; newPath: string } | null
+  loadTree: () => Promise<void>
+  resetStore: () => void
 }
 
-const initialRoot = deepClone(MOCK_FILE_SYSTEM)
-
 export const useFileSystemStore = create<FileSystemState & FileSystemActions>((set, get) => ({
-  root: initialRoot,
-  nodeMap: buildNodeMap(initialRoot),
+  root: emptyRoot,
+  nodeMap: buildNodeMap(emptyRoot),
+  isLoaded: false,
+  isLoading: false,
+  syncError: null,
+
+  loadTree: async () => {
+    set({ isLoading: true, syncError: null })
+    try {
+      const tree = await fsApi.fetchFileTree()
+      const nodeMap = buildNodeMap(tree)
+      set({ root: tree, nodeMap, isLoaded: true, isLoading: false })
+    } catch {
+      // Fallback to mock data
+      const fallback = deepClone(MOCK_FILE_SYSTEM)
+      const nodeMap = buildNodeMap(fallback)
+      set({
+        root: fallback,
+        nodeMap,
+        isLoaded: true,
+        isLoading: false,
+        syncError: 'Failed to load file system from server',
+      })
+    }
+    // Desktop itemlarni file system dan yuklash
+    const { useDesktopStore } = await import('@/stores/use-desktop-store')
+    useDesktopStore.getState().loadDesktopItems()
+  },
+
+  resetStore: () => {
+    set({
+      root: emptyRoot,
+      nodeMap: buildNodeMap(emptyRoot),
+      isLoaded: false,
+      isLoading: false,
+      syncError: null,
+    })
+  },
 
   getNode: (path) => {
     return get().nodeMap.get(path) ?? null
@@ -145,6 +192,12 @@ export const useFileSystemStore = create<FileSystemState & FileSystemActions>((s
     const newNodeMap = buildNodeMap(newRoot)
     set({ root: newRoot, nodeMap: newNodeMap })
 
+    // Background API sync
+    fsApi.createNode(parentPath, name, type).catch(() => {
+      get().deleteNode(newPath)
+      set({ syncError: `Failed to create ${name}` })
+    })
+
     return newNodeMap.get(newPath) ?? null
   },
 
@@ -180,6 +233,11 @@ export const useFileSystemStore = create<FileSystemState & FileSystemActions>((s
     const newNodeMap = buildNodeMap(newRoot)
     set({ root: newRoot, nodeMap: newNodeMap })
 
+    // Background API sync
+    fsApi.renameNode(path, newName).catch(() => {
+      set({ syncError: `Failed to rename ${path}` })
+    })
+
     return newNodeMap.get(newPath) ?? null
   },
 
@@ -195,6 +253,11 @@ export const useFileSystemStore = create<FileSystemState & FileSystemActions>((s
 
     const newNodeMap = buildNodeMap(newRoot)
     set({ root: newRoot, nodeMap: newNodeMap })
+
+    // Background API sync
+    fsApi.deleteNode(path).catch(() => {
+      set({ syncError: `Failed to delete ${path}` })
+    })
 
     return true
   },
@@ -241,6 +304,11 @@ export const useFileSystemStore = create<FileSystemState & FileSystemActions>((s
     const newNodeMap = buildNodeMap(newRoot)
     set({ root: newRoot, nodeMap: newNodeMap })
 
+    // Background API sync
+    fsApi.moveNode(sourcePath, destParentPath).catch(() => {
+      set({ syncError: `Failed to move ${sourcePath}` })
+    })
+
     return { oldPath: sourcePath, newPath }
   },
 
@@ -271,6 +339,11 @@ export const useFileSystemStore = create<FileSystemState & FileSystemActions>((s
 
     const newNodeMap = buildNodeMap(newRoot)
     set({ root: newRoot, nodeMap: newNodeMap })
+
+    // Background API sync
+    fsApi.copyNode(sourcePath, destParentPath).catch(() => {
+      set({ syncError: `Failed to copy ${sourcePath}` })
+    })
 
     return { oldPath: sourcePath, newPath }
   },

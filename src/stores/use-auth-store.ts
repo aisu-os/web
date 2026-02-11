@@ -10,6 +10,7 @@ import {
 import { useProcessStore } from '@/stores/use-process-store'
 import { useWindowStore } from '@/stores/use-window-store'
 import { useThemeStore } from '@/stores/use-theme-store'
+import { useFileSystemStore } from '@/stores/use-file-system-store'
 
 interface AuthStore {
   phase: AuthPhase
@@ -75,6 +76,7 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
         useThemeStore.getState().setWallpaper(result.wallpaper)
       }
       set({ phase: 'loading', error: null, user: result.user })
+      useFileSystemStore.getState().loadTree()
     } else {
       set({ error: result.error ?? "Noto'g'ri parol" })
     }
@@ -87,6 +89,7 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
         useThemeStore.getState().setWallpaper(result.wallpaper)
       }
       set({ phase: 'loading', error: null, user: result.user })
+      useFileSystemStore.getState().loadTree()
     } else {
       set({ error: result.error ?? 'Xatolik yuz berdi' })
     }
@@ -111,6 +114,7 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
   logout: () => {
     useWindowStore.getState().clearAll()
     useProcessStore.getState().clearAll()
+    useFileSystemStore.getState().resetStore()
     clearToken()
     clearSavedUsername()
     set({ phase: 'login', user: null, error: null, requireInteraction: false })
