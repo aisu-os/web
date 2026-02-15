@@ -61,7 +61,7 @@ interface TextEditorProps {
 }
 
 const TextEditor = ({ filePath, windowId = '' }: TextEditorProps) => {
-  const store = useMemo(() => createTextEditorStore(filePath), [])
+  const store = useMemo(() => createTextEditorStore(filePath, windowId), [])
 
   return (
     <WindowIdContext.Provider value={windowId}>

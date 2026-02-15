@@ -6,8 +6,11 @@ const EditorArea = () => {
   const content = useTextEditorStore((s) => s.content)
   const wordWrap = useTextEditorStore((s) => s.wordWrap)
   const findQuery = useTextEditorStore((s) => s.findQuery)
+  const isLoading = useTextEditorStore((s) => s.isLoading)
+  const error = useTextEditorStore((s) => s.error)
   const setContent = useTextEditorStore((s) => s.setContent)
   const setCursorPosition = useTextEditorStore((s) => s.setCursorPosition)
+  const clearError = useTextEditorStore((s) => s.clearError)
 
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const lineNumbersRef = useRef<HTMLDivElement>(null)
@@ -55,6 +58,36 @@ const EditorArea = () => {
     textarea.addEventListener('scroll', handleScroll)
     return () => textarea.removeEventListener('scroll', handleScroll)
   }, [handleScroll])
+
+  if (isLoading) {
+    return (
+      <div className="flex flex-1 items-center justify-center">
+        <div className="flex flex-col items-center gap-2">
+          <div className="w-5 h-5 border-2 border-white/20 border-t-white/60 rounded-full animate-spin" />
+          <span className="text-[12px] text-white/40">Loading file...</span>
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-1 items-center justify-center">
+        <div className="flex flex-col items-center gap-3 max-w-[300px] text-center">
+          <div className="w-8 h-8 rounded-full bg-red-500/10 flex items-center justify-center">
+            <span className="text-red-400 text-[14px]">!</span>
+          </div>
+          <span className="text-[12px] text-white/60">{error}</span>
+          <button
+            onClick={clearError}
+            className="text-[11px] text-sky-400 hover:text-sky-300 transition-colors"
+          >
+            Dismiss
+          </button>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="flex flex-1 overflow-hidden relative">

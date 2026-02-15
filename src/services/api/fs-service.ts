@@ -213,6 +213,48 @@ export async function searchFiles(
   return dtos.map(mapNode);
 }
 
+// ── File content API ──
+
+interface ReadFileDTO {
+  content: string;
+  size: number;
+  encoding: string;
+}
+
+interface WriteFileDTO {
+  path: string;
+  size: number;
+  updated_at: string;
+}
+
+export async function readFileContent(
+  path: string,
+): Promise<{ content: string; size: number; encoding: string }> {
+  const dto = await apiGet<ReadFileDTO>(
+    `/fs/read?path=${encodeURIComponent(path)}`,
+  );
+  return {
+    content: dto.content,
+    size: dto.size,
+    encoding: dto.encoding,
+  };
+}
+
+export async function writeFileContent(
+  path: string,
+  content: string,
+): Promise<{ path: string; size: number; updatedAt: Date }> {
+  const dto = await apiPost<WriteFileDTO>("/fs/write", {
+    path,
+    content,
+  });
+  return {
+    path: dto.path,
+    size: dto.size,
+    updatedAt: new Date(dto.updated_at),
+  };
+}
+
 export async function updateDesktopPositions(
   positions: { path: string; x: number; y: number }[],
 ): Promise<void> {

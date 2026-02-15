@@ -16,6 +16,7 @@ interface WindowStore {
   restoreWindow: (id: string) => void
   moveWindow: (id: string, position: WindowPosition) => void
   resizeWindow: (id: string, size: WindowSize) => void
+  setWindowTitle: (id: string, title: string) => void
 
   // App-dan ochilgan oynalar uchun qo'shimcha ma'lumot
   windowProps: Record<string, Record<string, unknown>>
@@ -201,6 +202,14 @@ export const useWindowStore = create<WindowStore>((set, get) => ({
     set((state) => ({
       windows: state.windows.map((w) =>
         w.id === id ? { ...w, size } : w
+      ),
+    }))
+  },
+
+  setWindowTitle: (id, title) => {
+    set((state) => ({
+      windows: state.windows.map((w) =>
+        w.id === id ? { ...w, title } : w
       ),
     }))
   },

@@ -4,6 +4,7 @@ import { cn } from '@/lib/cn'
 
 const Toolbar = () => {
   const isModified = useTextEditorStore((s) => s.isModified)
+  const isSaving = useTextEditorStore((s) => s.isSaving)
   const showFind = useTextEditorStore((s) => s.showFind)
   const findQuery = useTextEditorStore((s) => s.findQuery)
   const newFile = useTextEditorStore((s) => s.newFile)
@@ -30,15 +31,18 @@ const Toolbar = () => {
         </button>
         <button
           onClick={handleSave}
+          disabled={isSaving || !isModified}
           className={cn(
             'px-2.5 py-1 rounded text-[11px] font-medium',
             'transition-colors',
-            isModified
-              ? 'text-sky-400 hover:text-sky-300 hover:bg-sky-400/10'
-              : 'text-white/40 cursor-default'
+            isSaving
+              ? 'text-white/40 cursor-wait'
+              : isModified
+                ? 'text-sky-400 hover:text-sky-300 hover:bg-sky-400/10'
+                : 'text-white/40 cursor-default'
           )}
         >
-          Save
+          {isSaving ? 'Saving...' : 'Save'}
         </button>
         <div className="flex-1" />
         <button
