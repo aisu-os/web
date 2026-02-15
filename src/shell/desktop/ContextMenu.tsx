@@ -4,7 +4,7 @@ import { cn } from '@/lib/cn'
 import { Z_INDEX } from '@/lib/constants'
 import { openFile } from '@/lib/open-file'
 import { useDesktopStore } from '@/stores/use-desktop-store'
-import { useWindowStore } from '@/stores/use-window-store'
+import { useFileSystemStore } from '@/stores/use-file-system-store'
 import { useGetInfoStore } from '@/stores/use-get-info-store'
 import { useClickOutside } from '@/hooks/use-click-outside'
 import { useMenuPosition } from '@/hooks/use-menu-position'
@@ -13,12 +13,6 @@ import {
   ITEM_CONTEXT_MENU_ITEMS,
 } from './desktop.constants'
 
-const DESKTOP_PATH_MAP: Record<string, string> = {
-  'Projects': '/Desktop/Projects',
-  'notes.txt': '/Desktop/notes.txt',
-  'screenshot.png': '/Desktop/screenshot.png',
-}
-
 const ContextMenu = () => {
   const contextMenu = useDesktopStore((s) => s.contextMenu)
   const closeContextMenu = useDesktopStore((s) => s.closeContextMenu)
@@ -26,7 +20,6 @@ const ContextMenu = () => {
   const startCreating = useDesktopStore((s) => s.startCreating)
   const startRenaming = useDesktopStore((s) => s.startRenaming)
   const items = useDesktopStore((s) => s.items)
-  const openWindow = useWindowStore((s) => s.openWindow)
   const openGetInfo = useGetInfoStore((s) => s.open)
   const menuRef = useRef<HTMLDivElement>(null)
   const adjustedPosition = useMenuPosition(menuRef, contextMenu.isOpen, contextMenu.position)
@@ -52,8 +45,7 @@ const ContextMenu = () => {
         if (targetItemId) {
           const item = items.find((i) => i.id === targetItemId)
           if (item) {
-            const path = DESKTOP_PATH_MAP[item.name] ?? `/Desktop/${item.name}`
-            openFile(path)
+            openFile(item.fsPath)
           }
         }
         break
@@ -65,14 +57,38 @@ const ContextMenu = () => {
         if (targetItemId) {
           const item = items.find((i) => i.id === targetItemId)
           if (item) {
-            const path = DESKTOP_PATH_MAP[item.name] ?? `/Desktop/${item.name}`
-            openGetInfo(path)
+            openGetInfo(item.fsPath)
+          }
+        }
+        break
+      }
+      case 'item:delete': {
+        if (targetItemId) {
+          const item = items.find((i) => i.id === targetItemId)
+          if (item) {
+            const fs = useFileSystemStore.getState()
+            fs.deleteNode(item.fsPath)
+            useDesktopStore.getState().removeItem(targetItemId)
+          }
+        }
+        break
+      }
+      case 'item:duplicate': {
+        if (targetItemId) {
+          const item = items.find((i) => i.id === targetItemId)
+          if (item) {
+            const fs = useFileSystemStore.getState()
+            const result = fs.copyNode(item.fsPath, '/Desktop')
+            if (result) {
+              const desktop = useDesktopStore.getState()
+              desktop.addItemFromFileSystem(result.newPath, desktop.getFreePosition())
+            }
           }
         }
         break
       }
     }
-  }, [contextMenu.targetItemId, closeContextMenu, selectAll, startCreating, startRenaming, items, openWindow, openGetInfo])
+  }, [contextMenu.targetItemId, closeContextMenu, selectAll, startCreating, startRenaming, items, openGetInfo])
 
   const menuItems = contextMenu.targetItemId
     ? ITEM_CONTEXT_MENU_ITEMS

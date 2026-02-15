@@ -1,16 +1,6 @@
 import { create } from 'zustand'
 import type { FileNode, FileType } from '@/types'
-import { MOCK_FILE_SYSTEM } from '@/apps/file-manager/file-manager.constants'
 import * as fsApi from '@/services/api/fs-service'
-
-function deepClone(node: FileNode): FileNode {
-  return {
-    ...node,
-    children: node.children?.map(deepClone),
-    createdAt: node.createdAt ? new Date(node.createdAt) : undefined,
-    updatedAt: node.updatedAt ? new Date(node.updatedAt) : undefined,
-  }
-}
 
 function buildNodeMap(root: FileNode): Map<string, FileNode> {
   const map = new Map<string, FileNode>()
@@ -71,40 +61,8 @@ const emptyRoot: FileNode = {
   children: [],
 }
 
-const isDesktopChild = (p: string) => p.startsWith('/Desktop/') && p.split('/').length === 3
-
-function syncDesktopAfterChange(affectedPath: string, action: 'add' | 'remove' | 'rename', oldPath?: string) {
-  import('@/stores/use-desktop-store').then(({ useDesktopStore }) => {
-    const desktop = useDesktopStore.getState()
-
-    if (action === 'add' && isDesktopChild(affectedPath)) {
-      if (!desktop.getItemByFsPath(affectedPath)) {
-        desktop.addItemFromFileSystem(affectedPath, desktop.getFreePosition())
-      }
-    }
-
-    if (action === 'remove' && isDesktopChild(affectedPath)) {
-      desktop.removeItemByFsPath(affectedPath)
-    }
-
-    if (action === 'rename' && oldPath) {
-      if (isDesktopChild(oldPath) && isDesktopChild(affectedPath)) {
-        const item = desktop.getItemByFsPath(oldPath)
-        if (item) {
-          const newName = affectedPath.split('/').pop()!
-          desktop.renameItem(item.id, newName)
-          desktop.updateItemFsPath(item.id, affectedPath)
-        }
-      } else if (isDesktopChild(oldPath)) {
-        desktop.removeItemByFsPath(oldPath)
-      } else if (isDesktopChild(affectedPath)) {
-        if (!desktop.getItemByFsPath(affectedPath)) {
-          desktop.addItemFromFileSystem(affectedPath, desktop.getFreePosition())
-        }
-      }
-    }
-  })
-}
+// Refresh debounce timer
+let refreshTimer: ReturnType<typeof setTimeout> | null = null
 
 interface FileSystemState {
   root: FileNode
@@ -112,6 +70,7 @@ interface FileSystemState {
   isLoaded: boolean
   isLoading: boolean
   syncError: string | null
+  containerNotRunning: boolean
   trashItems: FileNode[]
   isTrashLoading: boolean
 }
@@ -128,6 +87,7 @@ interface FileSystemActions {
   moveNode: (sourcePath: string, destParentPath: string) => { oldPath: string; newPath: string } | null
   copyNode: (sourcePath: string, destParentPath: string) => { oldPath: string; newPath: string } | null
   loadTree: () => Promise<void>
+  refreshTree: () => void
   fetchTrash: () => Promise<void>
   restoreFromTrash: (path: string) => Promise<void>
   emptyTrash: () => Promise<void>
@@ -140,30 +100,40 @@ export const useFileSystemStore = create<FileSystemState & FileSystemActions>((s
   isLoaded: false,
   isLoading: false,
   syncError: null,
+  containerNotRunning: false,
   trashItems: [],
   isTrashLoading: false,
 
   loadTree: async () => {
-    set({ isLoading: true, syncError: null })
+    set({ isLoading: true, syncError: null, containerNotRunning: false })
     try {
       const tree = await fsApi.fetchFileTree()
       const nodeMap = buildNodeMap(tree)
       set({ root: tree, nodeMap, isLoaded: true, isLoading: false })
-    } catch {
-      // Fallback to mock data
-      const fallback = deepClone(MOCK_FILE_SYSTEM)
-      const nodeMap = buildNodeMap(fallback)
+    } catch (err) {
+      // 503 = Container ishlamayapti
+      const is503 = err instanceof Error && 'status' in err && (err as { status: number }).status === 503
       set({
-        root: fallback,
-        nodeMap,
+        root: emptyRoot,
+        nodeMap: buildNodeMap(emptyRoot),
         isLoaded: true,
         isLoading: false,
-        syncError: 'Failed to load file system from server',
+        containerNotRunning: is503,
+        syncError: is503
+          ? 'Container ishlamayapti. Terminal orqali tizimni ishga tushiring.'
+          : 'Fayl tizimini yuklashda xatolik yuz berdi',
       })
     }
     // Desktop itemlarni file system dan yuklash
     const { useDesktopStore } = await import('@/stores/use-desktop-store')
     useDesktopStore.getState().loadDesktopItems()
+  },
+
+  refreshTree: () => {
+    if (refreshTimer) clearTimeout(refreshTimer)
+    refreshTimer = setTimeout(() => {
+      get().loadTree()
+    }, 300)
   },
 
   resetStore: () => {
@@ -173,6 +143,7 @@ export const useFileSystemStore = create<FileSystemState & FileSystemActions>((s
       isLoaded: false,
       isLoading: false,
       syncError: null,
+      containerNotRunning: false,
       trashItems: [],
       isTrashLoading: false,
     })
@@ -237,13 +208,13 @@ export const useFileSystemStore = create<FileSystemState & FileSystemActions>((s
     const newNodeMap = buildNodeMap(newRoot)
     set({ root: newRoot, nodeMap: newNodeMap })
 
-    // Background API sync
-    fsApi.createNode(parentPath, name, type).catch(() => {
-      get().deleteNode(newPath)
+    // Background API sync — muvaffaqiyatdan keyin tree yangilash
+    fsApi.createNode(parentPath, name, type).then(() => {
+      get().refreshTree()
+    }).catch(() => {
       set({ syncError: `Failed to create ${name}` })
+      get().refreshTree()
     })
-
-    syncDesktopAfterChange(newPath, 'add')
 
     return newNodeMap.get(newPath) ?? null
   },
@@ -281,11 +252,12 @@ export const useFileSystemStore = create<FileSystemState & FileSystemActions>((s
     set({ root: newRoot, nodeMap: newNodeMap })
 
     // Background API sync
-    fsApi.renameNode(path, newName).catch(() => {
+    fsApi.renameNode(path, newName).then(() => {
+      get().refreshTree()
+    }).catch(() => {
       set({ syncError: `Failed to rename ${path}` })
+      get().refreshTree()
     })
-
-    syncDesktopAfterChange(newPath, 'rename', path)
 
     return newNodeMap.get(newPath) ?? null
   },
@@ -303,16 +275,15 @@ export const useFileSystemStore = create<FileSystemState & FileSystemActions>((s
     const newNodeMap = buildNodeMap(newRoot)
     set({ root: newRoot, nodeMap: newNodeMap })
 
-    syncDesktopAfterChange(path, 'remove')
-
     // Background API sync
     fsApi.deleteNode(path).then(() => {
-      // Agar trash oldin yuklangan bo'lsa, yangilash
       if (get().trashItems.length > 0) {
         get().fetchTrash()
       }
+      get().refreshTree()
     }).catch(() => {
       set({ syncError: `Failed to delete ${path}` })
+      get().refreshTree()
     })
 
     return true
@@ -373,12 +344,12 @@ export const useFileSystemStore = create<FileSystemState & FileSystemActions>((s
     set({ root: newRoot, nodeMap: newNodeMap })
 
     // Background API sync
-    fsApi.moveNode(sourcePath, destParentPath).catch(() => {
+    fsApi.moveNode(sourcePath, destParentPath).then(() => {
+      get().refreshTree()
+    }).catch(() => {
       set({ syncError: `Failed to move ${sourcePath}` })
+      get().refreshTree()
     })
-
-    syncDesktopAfterChange(sourcePath, 'remove')
-    syncDesktopAfterChange(newPath, 'add')
 
     return { oldPath: sourcePath, newPath }
   },
@@ -397,7 +368,7 @@ export const useFileSystemStore = create<FileSystemState & FileSystemActions>((s
     const now = new Date()
 
     // Deep copy bilan yangi node yaratish
-    const copiedNode = deepClone(node)
+    const copiedNode: FileNode = JSON.parse(JSON.stringify(node))
     const movedNode = updateDescendantPaths(copiedNode, sourcePath, newPath)
     const finalNode = { ...movedNode, name: finalName, updatedAt: now, createdAt: now }
 
@@ -412,11 +383,12 @@ export const useFileSystemStore = create<FileSystemState & FileSystemActions>((s
     set({ root: newRoot, nodeMap: newNodeMap })
 
     // Background API sync
-    fsApi.copyNode(sourcePath, destParentPath).catch(() => {
+    fsApi.copyNode(sourcePath, destParentPath).then(() => {
+      get().refreshTree()
+    }).catch(() => {
       set({ syncError: `Failed to copy ${sourcePath}` })
+      get().refreshTree()
     })
-
-    syncDesktopAfterChange(newPath, 'add')
 
     return { oldPath: sourcePath, newPath }
   },

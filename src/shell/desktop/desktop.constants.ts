@@ -1,4 +1,4 @@
-import type { DesktopItem, ContextMenuItem } from '@/types'
+import type { ContextMenuItem } from '@/types'
 
 export const WALLPAPERS = [
   'https://images.unsplash.com/photo-1494587416117-f102a2ac0a8d?w=1920&q=80',
@@ -17,33 +17,6 @@ export const FALLBACK_GRADIENT =
   'linear-gradient(135deg, #0B1120 0%, #0F172A 30%, #0C4A6E 70%, #0B1120 100%)'
 
 export const DESKTOP_ICON_SIZE = 56
-
-export const DEFAULT_DESKTOP_ITEMS: DesktopItem[] = [
-  {
-    id: 'folder-projects',
-    name: 'Projects',
-    type: 'directory',
-    icon: 'folder',
-    position: { x: 24, y: 48 },
-    fsPath: '/Desktop/Projects',
-  },
-  {
-    id: 'file-notes',
-    name: 'notes.txt',
-    type: 'file',
-    icon: 'text-file',
-    position: { x: 24, y: 152 },
-    fsPath: '/Desktop/notes.txt',
-  },
-  {
-    id: 'file-screenshot',
-    name: 'screenshot.png',
-    type: 'file',
-    icon: 'image-file',
-    position: { x: 24, y: 256 },
-    fsPath: '/Desktop/screenshot.png',
-  },
-]
 
 export const DESKTOP_CONTEXT_MENU_ITEMS: ContextMenuItem[] = [
   { label: 'New Folder', action: 'desktop:new-folder', shortcut: '⇧⌘N' },

@@ -97,16 +97,42 @@ export const useDesktopStore = create<DesktopStore>((set, get) => ({
   loadDesktopItems: () => {
     const fs = useFileSystemStore.getState()
     const children = fs.getChildren('/Desktop')
-    if (children.length === 0) return
+    const { items: existingItems, editingItemId } = get()
 
-    // Avval saqlangan pozitsiyali elementlarni joylashtirish
-    const itemsWithPos: DesktopItem[] = []
+    // Bo'sh desktop — serverda hech narsa yo'q
+    if (children.length === 0) {
+      // Editing rejimidagi itemni saqlash
+      if (editingItemId) {
+        const editingItem = existingItems.find((i) => i.id === editingItemId)
+        set({ items: editingItem ? [editingItem] : [] })
+      } else {
+        set({ items: [] })
+      }
+      return
+    }
+
+    // Mavjud itemlarni fsPath bo'yicha map qilish (pozitsiyani saqlash uchun)
+    const existingByFsPath = new Map(existingItems.map((i) => [i.fsPath, i]))
+
+    // Merge strategiyasi: server children asosida yangi ro'yxat
+    const mergedItems: DesktopItem[] = []
     const nodesWithoutPos: typeof children = []
 
     for (const node of children) {
-      if (node.desktopX != null && node.desktopY != null) {
-        itemsWithPos.push({
-          id: `desktop-${node.path}`,
+      const existing = existingByFsPath.get(node.path)
+      if (existing) {
+        // Mavjud item — pozitsiyasini saqlash, nom/type yangilash
+        mergedItems.push({
+          ...existing,
+          id: `desktop:${node.path}`,
+          name: node.name,
+          type: node.type,
+          icon: getIconForType(node.type),
+        })
+      } else if (node.desktopX != null && node.desktopY != null) {
+        // Yangi item serverdan pozitsiya bilan
+        mergedItems.push({
+          id: `desktop:${node.path}`,
           name: node.name,
           type: node.type,
           icon: getIconForType(node.type),
@@ -118,11 +144,11 @@ export const useDesktopStore = create<DesktopStore>((set, get) => ({
       }
     }
 
-    // Pozitsiyasi yo'q elementlarga bo'sh joy topish
+    // Pozitsiyasi yo'q yangi elementlarga bo'sh joy topish
     for (const node of nodesWithoutPos) {
-      const pos = findFreePosition(itemsWithPos)
-      itemsWithPos.push({
-        id: `desktop-${node.path}`,
+      const pos = findFreePosition(mergedItems)
+      mergedItems.push({
+        id: `desktop:${node.path}`,
         name: node.name,
         type: node.type,
         icon: getIconForType(node.type),
@@ -131,11 +157,19 @@ export const useDesktopStore = create<DesktopStore>((set, get) => ({
       })
     }
 
-    set({ items: itemsWithPos })
+    // Editing rejimidagi itemni saqlash (agar serverda hali ko'rinmasa)
+    if (editingItemId) {
+      const editingItem = existingItems.find((i) => i.id === editingItemId)
+      if (editingItem && !mergedItems.some((i) => i.fsPath === editingItem.fsPath)) {
+        mergedItems.push(editingItem)
+      }
+    }
+
+    set({ items: mergedItems })
 
     // Pozitsiyasi yo'q elementlar uchun backend'ga saqlash
     if (nodesWithoutPos.length > 0) {
-      schedulePositionSync(itemsWithPos)
+      schedulePositionSync(mergedItems)
     }
   },
 
@@ -208,13 +242,14 @@ export const useDesktopStore = create<DesktopStore>((set, get) => ({
     const uniqueName = generateUniqueDesktopName(items, baseName)
     const position = findFreePosition(items)
 
+    const fsPath = `/Desktop/${uniqueName}`
     const newItem: DesktopItem = {
-      id: `desktop-${Date.now()}`,
+      id: `desktop:${fsPath}`,
       name: uniqueName,
       type,
       icon: getIconForType(type),
       position,
-      fsPath: `/Desktop/${uniqueName}`,
+      fsPath,
     }
 
     // File system'da ham yaratish
@@ -256,8 +291,7 @@ export const useDesktopStore = create<DesktopStore>((set, get) => ({
       if (editingMode === 'create') {
         // Bo'sh nom — yaratishni bekor qilish
         const fs = useFileSystemStore.getState()
-        const fsPath = `/Desktop/${item.name}`
-        fs.deleteNode(fsPath)
+        fs.deleteNode(item.fsPath)
         set((state) => ({
           items: state.items.filter((i) => i.id !== editingItemId),
           editingItemId: null,
@@ -285,12 +319,12 @@ export const useDesktopStore = create<DesktopStore>((set, get) => ({
 
     // File system'da ham rename
     const fs = useFileSystemStore.getState()
-    const oldPath = `/Desktop/${item.name}`
-    fs.renameNode(oldPath, trimmedName)
+    fs.renameNode(item.fsPath, trimmedName)
 
+    const newFsPath = `/Desktop/${trimmedName}`
     set((state) => ({
       items: state.items.map((i) =>
-        i.id === editingItemId ? { ...i, name: trimmedName, fsPath: `/Desktop/${trimmedName}` } : i
+        i.id === editingItemId ? { ...i, name: trimmedName, fsPath: newFsPath, id: `desktop:${newFsPath}` } : i
       ),
       editingItemId: null,
       editingMode: null,
@@ -303,7 +337,7 @@ export const useDesktopStore = create<DesktopStore>((set, get) => ({
       const item = items.find((i) => i.id === editingItemId)
       if (item) {
         const fs = useFileSystemStore.getState()
-        fs.deleteNode(`/Desktop/${item.name}`)
+        fs.deleteNode(item.fsPath)
       }
       set((state) => ({
         items: state.items.filter((i) => i.id !== editingItemId),
@@ -326,7 +360,7 @@ export const useDesktopStore = create<DesktopStore>((set, get) => ({
     if (items.some((i) => i.fsPath === fsPath)) return
 
     const newItem: DesktopItem = {
-      id: `desktop-${Date.now()}`,
+      id: `desktop:${fsPath}`,
       name: node.name,
       type: node.type,
       icon: getIconForType(node.type),
