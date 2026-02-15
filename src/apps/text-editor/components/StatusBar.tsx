@@ -8,6 +8,8 @@ const StatusBar = () => {
   const cursorCol = useTextEditorStore((s) => s.cursorCol)
   const wordWrap = useTextEditorStore((s) => s.wordWrap)
   const content = useTextEditorStore((s) => s.content)
+  const isSaving = useTextEditorStore((s) => s.isSaving)
+  const error = useTextEditorStore((s) => s.error)
 
   const lineCount = content.split('\n').length
 
@@ -22,6 +24,8 @@ const StatusBar = () => {
       <div className="flex items-center gap-3">
         <span>{fileName}</span>
         <span>{language}</span>
+        {isSaving && <span className="text-sky-400">Saving...</span>}
+        {error && <span className="text-red-400 truncate max-w-[200px]">{error}</span>}
       </div>
       <div className="flex items-center gap-3">
         <span>{lineCount} lines</span>

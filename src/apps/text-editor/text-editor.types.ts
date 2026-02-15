@@ -4,6 +4,9 @@ export interface TextEditorState {
   content: string
   savedContent: string
   isModified: boolean
+  isLoading: boolean
+  isSaving: boolean
+  error: string | null
   language: string
   wordWrap: boolean
   showFind: boolean
@@ -13,12 +16,13 @@ export interface TextEditorState {
 }
 
 export interface TextEditorActions {
-  loadFile: (filePath: string) => void
+  loadFile: (filePath: string) => Promise<void>
   setContent: (content: string) => void
-  save: () => void
+  save: () => Promise<void>
   newFile: () => void
   toggleWordWrap: () => void
   toggleFind: () => void
   setFindQuery: (query: string) => void
   setCursorPosition: (line: number, col: number) => void
+  clearError: () => void
 }
