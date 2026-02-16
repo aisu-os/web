@@ -25,6 +25,7 @@ export interface AppMenuItem {
   action?: string
   separator?: boolean
   disabled?: boolean
+  checked?: boolean
 }
 
 export type SystemAppId =

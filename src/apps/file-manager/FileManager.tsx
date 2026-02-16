@@ -1,6 +1,7 @@
-import { useMemo, useEffect } from 'react'
+import { useMemo, useEffect, useRef } from 'react'
 import { cn } from '@/lib/cn'
 import { useFileSystemStore } from '@/stores/use-file-system-store'
+import { fetchAppSettings } from '@/services/api/settings-service'
 import {
   createFileManagerStore,
   FileManagerStoreContext,
@@ -26,6 +27,21 @@ const FileManagerInner = () => {
   const startRenaming = useFileManagerStore((s) => s.startRenaming)
   const selectedPaths = useFileManagerStore((s) => s.selectedPaths)
   const editingPath = useFileManagerStore((s) => s.editingPath)
+  const setShowHiddenFiles = useFileManagerStore((s) => s.setShowHiddenFiles)
+  const settingsLoaded = useRef(false)
+
+  useEffect(() => {
+    if (settingsLoaded.current) return
+    settingsLoaded.current = true
+    fetchAppSettings('file-manager')
+      .then((result) => {
+        const setting = result.settings.find((s) => s.key === 'showHiddenFiles')
+        if (setting) {
+          setShowHiddenFiles(setting.value as boolean)
+        }
+      })
+      .catch(() => {})
+  }, [setShowHiddenFiles])
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {

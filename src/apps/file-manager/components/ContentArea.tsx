@@ -21,17 +21,21 @@ const ContentArea = () => {
   const { getChildren } = useFileSystem()
   const windowId = useWindowId()
 
+  const showHiddenFiles = useFileManagerStore((s) => s.showHiddenFiles)
   const currentChildren = getChildren(currentPath)
 
   const filteredItems = useMemo(() => {
     let items = currentChildren
+    if (!showHiddenFiles) {
+      items = items.filter((n) => !n.name.startsWith('.'))
+    }
     if (searchQuery) {
       items = items.filter((n) =>
         n.name.toLowerCase().includes(searchQuery.toLowerCase())
       )
     }
     return sortFileNodes(items, sortKey, sortDirection)
-  }, [currentChildren, searchQuery, sortKey, sortDirection])
+  }, [currentChildren, showHiddenFiles, searchQuery, sortKey, sortDirection])
 
   const dropTarget = useDropTarget({
     target: { type: 'file-manager-content', windowId, path: currentPath },

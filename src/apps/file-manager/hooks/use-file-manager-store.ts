@@ -3,6 +3,7 @@ import { create, useStore, type StoreApi } from 'zustand'
 import type { FileType } from '@/types'
 import type { ViewMode, SortKey, SortDirection } from '../file-manager.types'
 import { useFileSystemStore } from '@/stores/use-file-system-store'
+import { setAppSetting } from '@/services/api/settings-service'
 
 interface ContextMenuState {
   isOpen: boolean
@@ -20,6 +21,7 @@ interface FileManagerState {
   sortDirection: SortDirection
   searchQuery: string
   isSidebarVisible: boolean
+  showHiddenFiles: boolean
   columnSelections: string[]
   contextMenu: ContextMenuState
   editingPath: string | null
@@ -39,6 +41,8 @@ interface FileManagerActions {
   toggleSortDirection: () => void
   setSearchQuery: (query: string) => void
   toggleSidebar: () => void
+  toggleShowHiddenFiles: () => void
+  setShowHiddenFiles: (show: boolean) => void
   setColumnSelection: (level: number, path: string) => void
   openContextMenu: (x: number, y: number, targetPath?: string) => void
   closeContextMenu: () => void
@@ -61,6 +65,7 @@ export function createFileManagerStore(initialPath = '/Desktop'): FileManagerSto
     sortDirection: 'asc',
     searchQuery: '',
     isSidebarVisible: true,
+    showHiddenFiles: false,
     columnSelections: buildColumnSelections(initialPath),
     contextMenu: {
       isOpen: false,
@@ -161,6 +166,16 @@ export function createFileManagerStore(initialPath = '/Desktop'): FileManagerSto
 
     toggleSidebar: () => {
       set((state) => ({ isSidebarVisible: !state.isSidebarVisible }))
+    },
+
+    toggleShowHiddenFiles: () => {
+      const newValue = !get().showHiddenFiles
+      set({ showHiddenFiles: newValue })
+      setAppSetting('file-manager', 'showHiddenFiles', newValue).catch(() => {})
+    },
+
+    setShowHiddenFiles: (show) => {
+      set({ showHiddenFiles: show })
     },
 
     setColumnSelection: (level, path) => {

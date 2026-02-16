@@ -1,79 +1,105 @@
-import { useRef, useCallback } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { cn } from '@/lib/cn'
-import { Z_INDEX } from '@/lib/constants'
-import { openFile } from '@/lib/open-file'
-import { useClickOutside } from '@/hooks/use-click-outside'
-import { useMenuPosition } from '@/hooks/use-menu-position'
-import { useGetInfoStore } from '@/stores/use-get-info-store'
-import { useFileSystemStore } from '@/stores/use-file-system-store'
-import { useFileManagerStore } from '../hooks/use-file-manager-store'
-import { useFileSystem } from '../hooks/use-file-system'
+import { useRef, useCallback } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { cn } from "@/lib/cn";
+import { Z_INDEX } from "@/lib/constants";
+import { openFile } from "@/lib/open-file";
+import { useClickOutside } from "@/hooks/use-click-outside";
+import { useMenuPosition } from "@/hooks/use-menu-position";
+import { useGetInfoStore } from "@/stores/use-get-info-store";
+import { useFileSystemStore } from "@/stores/use-file-system-store";
+import { useFileManagerStore } from "../hooks/use-file-manager-store";
+import { useFileSystem } from "../hooks/use-file-system";
 import {
   FILE_CONTEXT_MENU,
   DIRECTORY_CONTEXT_MENU,
-  BACKGROUND_CONTEXT_MENU,
-} from '../file-manager.constants'
+  getBackgroundContextMenu,
+} from "../file-manager.constants";
 
 const FileContextMenu = () => {
-  const contextMenu = useFileManagerStore((s) => s.contextMenu)
-  const currentPath = useFileManagerStore((s) => s.currentPath)
-  const closeContextMenu = useFileManagerStore((s) => s.closeContextMenu)
-  const startCreating = useFileManagerStore((s) => s.startCreating)
-  const startRenaming = useFileManagerStore((s) => s.startRenaming)
-  const navigateTo = useFileManagerStore((s) => s.navigateTo)
-  const openGetInfo = useGetInfoStore((s) => s.open)
-  const menuRef = useRef<HTMLDivElement>(null)
-  const { getNode } = useFileSystem()
-  const adjustedPosition = useMenuPosition(menuRef, contextMenu.isOpen, contextMenu.position)
+  const contextMenu = useFileManagerStore((s) => s.contextMenu);
+  const currentPath = useFileManagerStore((s) => s.currentPath);
+  const closeContextMenu = useFileManagerStore((s) => s.closeContextMenu);
+  const startCreating = useFileManagerStore((s) => s.startCreating);
+  const startRenaming = useFileManagerStore((s) => s.startRenaming);
+  const navigateTo = useFileManagerStore((s) => s.navigateTo);
+  const showHiddenFiles = useFileManagerStore((s) => s.showHiddenFiles);
+  const toggleShowHiddenFiles = useFileManagerStore(
+    (s) => s.toggleShowHiddenFiles,
+  );
+  const openGetInfo = useGetInfoStore((s) => s.open);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const { getNode } = useFileSystem();
+  const adjustedPosition = useMenuPosition(
+    menuRef,
+    contextMenu.isOpen,
+    contextMenu.position,
+  );
 
-  useClickOutside(menuRef, closeContextMenu, { enabled: contextMenu.isOpen, onContextMenu: true, onEscape: true })
+  useClickOutside(menuRef, closeContextMenu, {
+    enabled: contextMenu.isOpen,
+    onContextMenu: true,
+    onEscape: true,
+  });
 
   const handleAction = useCallback(
     (action: string | undefined) => {
-      const targetPath = contextMenu.targetPath
-      closeContextMenu()
+      const targetPath = contextMenu.targetPath;
+      closeContextMenu();
 
       switch (action) {
-        case 'new-folder':
-          startCreating('directory')
-          break
-        case 'new-file':
-          startCreating('file')
-          break
-        case 'rename':
-          if (targetPath) startRenaming(targetPath)
-          break
-        case 'open':
+        case "new-folder":
+          startCreating("directory");
+          break;
+        case "new-file":
+          startCreating("file");
+          break;
+        case "rename":
+          if (targetPath) startRenaming(targetPath);
+          break;
+        case "open":
           if (targetPath) {
-            const node = getNode(targetPath)
-            if (node?.type === 'directory') {
-              navigateTo(targetPath)
+            const node = getNode(targetPath);
+            if (node?.type === "directory") {
+              navigateTo(targetPath);
             } else if (node) {
-              openFile(targetPath)
+              openFile(targetPath);
             }
           }
-          break
-        case 'get-info': {
-          const pathToInspect = targetPath ?? currentPath
-          openGetInfo(pathToInspect)
-          break
+          break;
+        case "get-info": {
+          const pathToInspect = targetPath ?? currentPath;
+          openGetInfo(pathToInspect);
+          break;
         }
-        case 'move-to-trash':
+        case "move-to-trash":
           if (targetPath) {
-            useFileSystemStore.getState().deleteNode(targetPath)
+            useFileSystemStore.getState().deleteNode(targetPath);
           }
-          break
+          break;
+        case "toggle-hidden-files":
+          toggleShowHiddenFiles();
+          break;
       }
     },
-    [contextMenu.targetPath, closeContextMenu, startCreating, startRenaming, navigateTo, getNode, currentPath, openGetInfo]
-  )
+    [
+      contextMenu.targetPath,
+      closeContextMenu,
+      startCreating,
+      startRenaming,
+      navigateTo,
+      getNode,
+      currentPath,
+      openGetInfo,
+      toggleShowHiddenFiles,
+    ],
+  );
 
-  let items = BACKGROUND_CONTEXT_MENU
+  let items = getBackgroundContextMenu(showHiddenFiles);
   if (contextMenu.targetPath) {
-    const node = getNode(contextMenu.targetPath)
+    const node = getNode(contextMenu.targetPath);
     if (node) {
-      items = node.type === 'directory' ? DIRECTORY_CONTEXT_MENU : FILE_CONTEXT_MENU
+      items =
+        node.type === "directory" ? DIRECTORY_CONTEXT_MENU : FILE_CONTEXT_MENU;
     }
   }
 
@@ -83,14 +109,14 @@ const FileContextMenu = () => {
         <motion.div
           ref={menuRef}
           className={cn(
-            'fixed',
-            'min-w-[220px] w-max',
-            'py-1 px-[3px]',
-            'rounded-lg',
-            'bg-black/30 backdrop-blur-2xl backdrop-saturate-150',
-            'shadow-[0_10px_30px_rgba(0,0,0,0.4)]',
-            'ring-1 ring-inset ring-white/10',
-            'select-none'
+            "fixed",
+            "min-w-[220px] w-max",
+            "py-1 px-[3px]",
+            "rounded-lg",
+            "bg-black/30 backdrop-blur-2xl backdrop-saturate-150",
+            "shadow-[0_10px_30px_rgba(0,0,0,0.4)]",
+            "ring-1 ring-inset ring-white/10",
+            "select-none",
           )}
           style={{
             left: adjustedPosition.x,
@@ -104,39 +130,49 @@ const FileContextMenu = () => {
         >
           {items.map((item, index) =>
             item.separator ? (
-              <div key={`sep-${index}`} className="mx-2 my-1 h-px bg-white/10" />
+              <div
+                key={`sep-${index}`}
+                className="mx-2 my-1 h-px bg-white/10"
+              />
             ) : (
               <button
                 key={item.label}
                 disabled={item.disabled}
                 onClick={() => handleAction(item.action)}
                 className={cn(
-                  'flex w-full items-center justify-between rounded px-3 py-[3px] text-[13px]',
-                  'text-left tracking-wide outline-none',
-                  'transition-none',
+                  "flex w-full items-center justify-between rounded px-3 py-[3px] text-[13px]",
+                  "text-left tracking-wide outline-none",
+                  "transition-none",
                   item.disabled
-                    ? 'cursor-default text-white/30'
-                    : 'cursor-default text-white/90 hover:bg-[#2463EB] hover:text-white'
+                    ? "cursor-default text-white/30"
+                    : "cursor-default text-white/90 hover:bg-[#2463EB] hover:text-white",
                 )}
               >
-                <span>{item.label}</span>
+                <span className="flex items-center gap-2">
+                  {item.label}
+                  {item.checked !== undefined && (
+                    <span className="w-3 text-[11px]">
+                      {item.checked ? "✓" : ""}
+                    </span>
+                  )}
+                </span>
                 {item.shortcut && (
                   <span
                     className={cn(
-                      'ml-6 text-[12px]',
-                      item.disabled ? 'text-white/20' : 'text-white/50'
+                      "ml-6 text-[12px]",
+                      item.disabled ? "text-white/20" : "text-white/50",
                     )}
                   >
                     {item.shortcut}
                   </span>
                 )}
               </button>
-            )
+            ),
           )}
         </motion.div>
       )}
     </AnimatePresence>
-  )
-}
+  );
+};
 
-export default FileContextMenu
+export default FileContextMenu;
