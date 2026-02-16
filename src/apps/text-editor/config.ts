@@ -21,6 +21,7 @@ export const textEditorConfig = createAppConfig({
           { label: 'New', shortcut: '⌘N', action: 'file:new' },
           { label: '', separator: true },
           { label: 'Save', shortcut: '⌘S', action: 'file:save' },
+          { label: 'Save As...', shortcut: '⇧⌘S', action: 'file:save-as' },
           { label: '', separator: true },
           { label: 'Close Window', shortcut: '⌘W' },
         ],

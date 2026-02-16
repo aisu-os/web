@@ -3,7 +3,7 @@ import { create, useStore } from 'zustand'
 import type { StoreApi } from 'zustand'
 import type { TextEditorState, TextEditorActions } from '../text-editor.types'
 import { detectLanguage } from '../text-editor.constants'
-import { readFileContent, writeFileContent } from '@/services/api/fs-service'
+import { readFileContent, writeFileContent, createNode as apiCreateNode } from '@/services/api/fs-service'
 import { useFileSystemStore } from '@/stores/use-file-system-store'
 import { useWindowStore } from '@/stores/use-window-store'
 
@@ -25,6 +25,8 @@ export function createTextEditorStore(initialFilePath?: string, windowId?: strin
     findQuery: '',
     cursorLine: 1,
     cursorCol: 1,
+    showSaveAs: false,
+    saveAsError: null,
 
     loadFile: async (filePath: string) => {
       const node = useFileSystemStore.getState().getNode(filePath)
@@ -78,7 +80,11 @@ export function createTextEditorStore(initialFilePath?: string, windowId?: strin
 
     save: async () => {
       const { filePath, content, isSaving } = get()
-      if (!filePath || isSaving) return
+      if (isSaving) return
+      if (!filePath) {
+        set({ showSaveAs: true })
+        return
+      }
 
       set({ isSaving: true, error: null })
 
@@ -145,6 +151,52 @@ export function createTextEditorStore(initialFilePath?: string, windowId?: strin
 
     clearError: () => {
       set({ error: null })
+    },
+
+    openSaveAs: () => {
+      set({ showSaveAs: true, saveAsError: null })
+    },
+
+    closeSaveAs: () => {
+      set({ showSaveAs: false, saveAsError: null })
+    },
+
+    saveAs: async (parentPath: string, fileName: string) => {
+      const { content, isSaving } = get()
+      if (isSaving) return
+
+      set({ isSaving: true, saveAsError: null })
+
+      try {
+        const createdNode = await apiCreateNode(parentPath, fileName, 'file')
+
+        await writeFileContent(createdNode.path, content)
+
+        const language = detectLanguage(fileName)
+
+        set({
+          filePath: createdNode.path,
+          fileName: createdNode.name,
+          savedContent: content,
+          isModified: false,
+          isSaving: false,
+          showSaveAs: false,
+          saveAsError: null,
+          language,
+        })
+
+        if (windowId) {
+          useWindowStore.getState().setWindowTitle(windowId, createdNode.name)
+        }
+
+        useFileSystemStore.getState().refreshTree()
+      } catch (err) {
+        const message = err instanceof Error ? err.message : 'Failed to save file'
+        set({
+          isSaving: false,
+          saveAsError: message,
+        })
+      }
     },
   }))
 

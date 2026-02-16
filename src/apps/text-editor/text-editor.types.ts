@@ -13,6 +13,8 @@ export interface TextEditorState {
   findQuery: string
   cursorLine: number
   cursorCol: number
+  showSaveAs: boolean
+  saveAsError: string | null
 }
 
 export interface TextEditorActions {
@@ -25,4 +27,7 @@ export interface TextEditorActions {
   setFindQuery: (query: string) => void
   setCursorPosition: (line: number, col: number) => void
   clearError: () => void
+  openSaveAs: () => void
+  closeSaveAs: () => void
+  saveAs: (parentPath: string, fileName: string) => Promise<void>
 }

@@ -8,15 +8,22 @@ import { WindowIdContext } from './hooks/use-window-id'
 import Toolbar from './components/Toolbar'
 import EditorArea from './components/EditorArea'
 import StatusBar from './components/StatusBar'
+import SaveAsDialog from './components/SaveAsDialog'
 
 const TextEditorInner = () => {
   const save = useTextEditorStore((s) => s.save)
   const newFile = useTextEditorStore((s) => s.newFile)
   const toggleFind = useTextEditorStore((s) => s.toggleFind)
   const toggleWordWrap = useTextEditorStore((s) => s.toggleWordWrap)
+  const openSaveAs = useTextEditorStore((s) => s.openSaveAs)
 
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
+      if (e.metaKey && e.shiftKey && e.key === 's') {
+        e.preventDefault()
+        openSaveAs()
+        return
+      }
       if (e.metaKey && e.key === 's') {
         e.preventDefault()
         save()
@@ -38,7 +45,7 @@ const TextEditorInner = () => {
         return
       }
     },
-    [save, newFile, toggleFind, toggleWordWrap]
+    [save, newFile, toggleFind, toggleWordWrap, openSaveAs]
   )
 
   useEffect(() => {
@@ -51,6 +58,7 @@ const TextEditorInner = () => {
       <Toolbar />
       <EditorArea />
       <StatusBar />
+      <SaveAsDialog />
     </div>
   )
 }
