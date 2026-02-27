@@ -11,6 +11,7 @@ import { useProcessStore } from '@/stores/use-process-store'
 import { useWindowStore } from '@/stores/use-window-store'
 import { useThemeStore } from '@/stores/use-theme-store'
 import { useFileSystemStore } from '@/stores/use-file-system-store'
+import { restoreSession, startSessionSync, stopSessionSync } from '@/services/session-sync'
 
 interface AuthStore {
   phase: AuthPhase
@@ -77,6 +78,9 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
       }
       set({ phase: 'loading', error: null, user: result.user })
       useFileSystemStore.getState().loadTree()
+      restoreSession().finally(() => {
+        startSessionSync()
+      })
     } else {
       set({ error: result.error ?? "Noto'g'ri parol" })
     }
@@ -90,6 +94,9 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
       }
       set({ phase: 'loading', error: null, user: result.user })
       useFileSystemStore.getState().loadTree()
+      restoreSession().finally(() => {
+        startSessionSync()
+      })
     } else {
       set({ error: result.error ?? 'Xatolik yuz berdi' })
     }
@@ -112,6 +119,7 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
   },
 
   logout: () => {
+    stopSessionSync()
     useWindowStore.getState().clearAll()
     useProcessStore.getState().clearAll()
     useFileSystemStore.getState().resetStore()

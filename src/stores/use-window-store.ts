@@ -21,6 +21,11 @@ interface WindowStore {
   // App-dan ochilgan oynalar uchun qo'shimcha ma'lumot
   windowProps: Record<string, Record<string, unknown>>
   getWindowProps: (id: string) => Record<string, unknown> | undefined
+  restoreWindows: (
+    windows: WindowState[],
+    windowProps: Record<string, Record<string, unknown>>,
+    nextZIndex: number,
+  ) => void
   clearAll: () => void
 }
 
@@ -216,6 +221,21 @@ export const useWindowStore = create<WindowStore>((set, get) => ({
 
   getWindowProps: (id) => {
     return get().windowProps[id]
+  },
+
+  restoreWindows: (windows, windowProps, nextZIndex) => {
+    // windowCounter ni yangilash — ID collision oldini olish uchun
+    let maxCounter = 0
+    for (const w of windows) {
+      const parts = w.id.split('-')
+      const num = parseInt(parts[parts.length - 1], 10)
+      if (!isNaN(num) && num > maxCounter) {
+        maxCounter = num
+      }
+    }
+    windowCounter = maxCounter
+
+    set({ windows, windowProps, nextZIndex })
   },
 
   clearAll: () => {
