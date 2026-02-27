@@ -21,6 +21,7 @@ interface WindowStore {
   // App-dan ochilgan oynalar uchun qo'shimcha ma'lumot
   windowProps: Record<string, Record<string, unknown>>
   getWindowProps: (id: string) => Record<string, unknown> | undefined
+  setWindowProps: (id: string, props: Record<string, unknown>) => void
   restoreWindows: (
     windows: WindowState[],
     windowProps: Record<string, Record<string, unknown>>,
@@ -221,6 +222,15 @@ export const useWindowStore = create<WindowStore>((set, get) => ({
 
   getWindowProps: (id) => {
     return get().windowProps[id]
+  },
+
+  setWindowProps: (id, props) => {
+    set((state) => ({
+      windowProps: {
+        ...state.windowProps,
+        [id]: { ...state.windowProps[id], ...props },
+      },
+    }))
   },
 
   restoreWindows: (windows, windowProps, nextZIndex) => {

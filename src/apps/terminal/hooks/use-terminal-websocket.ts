@@ -9,6 +9,7 @@ function getWsUrl(): string {
 }
 
 interface UseTerminalWebSocketOptions {
+  sessionId?: string
   onData?: (data: Uint8Array) => void
   onReady?: (sessionId: string) => void
   onStatusChange?: (status: TerminalStatus) => void
@@ -16,6 +17,7 @@ interface UseTerminalWebSocketOptions {
 }
 
 export function useTerminalWebSocket({
+  sessionId: sessionIdProp,
   onData,
   onReady,
   onStatusChange,
@@ -67,7 +69,10 @@ export function useTerminalWebSocket({
       if (wsRef.current) return
 
       updateStatus('connecting')
-      const url = `${getWsUrl()}?token=${encodeURIComponent(token)}`
+      let url = `${getWsUrl()}?token=${encodeURIComponent(token)}`
+      if (sessionIdProp) {
+        url += `&session_id=${encodeURIComponent(sessionIdProp)}`
+      }
       const ws = new WebSocket(url)
       ws.binaryType = 'arraybuffer'
       wsRef.current = ws

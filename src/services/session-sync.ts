@@ -10,7 +10,7 @@ import {
 import type { SessionData } from "@/services/api/session-service";
 import type { ProcessState, WindowState } from "@/types";
 
-const SYNC_INTERVAL_MS = 5_000;
+const SYNC_INTERVAL_MS = 10_000;
 
 let syncTimer: ReturnType<typeof setInterval> | null = null;
 let isSyncing = false;

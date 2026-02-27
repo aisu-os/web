@@ -1,5 +1,9 @@
 import TerminalScreen from './components/TerminalScreen'
 
-export default function Terminal() {
-  return <TerminalScreen />
+interface TerminalProps {
+  windowId?: string
+}
+
+export default function Terminal({ windowId }: TerminalProps) {
+  return <TerminalScreen windowId={windowId} />
 }

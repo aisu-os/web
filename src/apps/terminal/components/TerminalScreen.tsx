@@ -3,6 +3,7 @@ import '@xterm/xterm/css/xterm.css'
 import { useRef, useEffect, useCallback } from 'react'
 import { useTerminal } from '../hooks/use-terminal'
 import { useTerminalWebSocket } from '../hooks/use-terminal-websocket'
+import { useWindowStore } from '@/stores/use-window-store'
 import type { TerminalStatus } from '../types'
 
 const STATUS_MESSAGES: Record<TerminalStatus, string | null> = {
@@ -14,16 +15,30 @@ const STATUS_MESSAGES: Record<TerminalStatus, string | null> = {
   error: 'Xatolik yuz berdi',
 }
 
-export default function TerminalScreen() {
+interface TerminalScreenProps {
+  windowId?: string
+}
+
+export default function TerminalScreen({ windowId }: TerminalScreenProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const resizeObserverRef = useRef<ResizeObserver | null>(null)
   const errorRef = useRef<string | null>(null)
 
+  // windowProps dan saqlangan sessionId ni olish
+  const savedSessionId = windowId
+    ? (useWindowStore.getState().getWindowProps(windowId)?.sessionId as string | undefined)
+    : undefined
+
   const { sendInput, sendResize, connect, disconnect, status } = useTerminalWebSocket({
+    sessionId: savedSessionId,
     onData: (data) => {
       write(data)
     },
-    onReady: () => {
+    onReady: (sessionId) => {
+      // sessionId ni windowProps ga saqlash — session persistence uchun
+      if (windowId) {
+        useWindowStore.getState().setWindowProps(windowId, { sessionId })
+      }
       fit()
       // Status o'zgarishi overlay ni yopadi — re-render + paint dan keyin focus
       setTimeout(() => {
