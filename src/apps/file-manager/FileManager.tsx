@@ -93,7 +93,7 @@ const FileManagerInner = () => {
 }
 
 const FileManager = ({ initialPath = '/', windowId = '' }: FileManagerProps) => {
-  const store = useMemo(() => createFileManagerStore(initialPath), [])
+  const store = useMemo(() => createFileManagerStore(initialPath, windowId), [])
 
   return (
     <WindowIdContext.Provider value={windowId}>

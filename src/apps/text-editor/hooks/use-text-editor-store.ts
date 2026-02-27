@@ -42,9 +42,10 @@ export function createTextEditorStore(initialFilePath?: string, windowId?: strin
         language,
       })
 
-      // Oyna sarlavhasini yangilash
+      // Oyna sarlavhasini yangilash va filePath ni windowProps ga saqlash
       if (windowId) {
         useWindowStore.getState().setWindowTitle(windowId, node.name)
+        useWindowStore.getState().setWindowProps(windowId, { filePath })
       }
 
       try {
@@ -130,6 +131,7 @@ export function createTextEditorStore(initialFilePath?: string, windowId?: strin
 
       if (windowId) {
         useWindowStore.getState().setWindowTitle(windowId, 'Untitled')
+        useWindowStore.getState().setWindowProps(windowId, { filePath: undefined })
       }
     },
 
@@ -187,6 +189,7 @@ export function createTextEditorStore(initialFilePath?: string, windowId?: strin
 
         if (windowId) {
           useWindowStore.getState().setWindowTitle(windowId, createdNode.name)
+          useWindowStore.getState().setWindowProps(windowId, { filePath: createdNode.path })
         }
 
         useFileSystemStore.getState().refreshTree()

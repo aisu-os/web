@@ -6,6 +6,7 @@ import { getToken } from "@/services/api/client";
 import {
   fetchSession,
   saveSession,
+  deleteSession,
 } from "@/services/api/session-service";
 import type { SessionData } from "@/services/api/session-service";
 import type { ProcessState, WindowState } from "@/types";
@@ -38,6 +39,7 @@ async function syncToBackend(): Promise<void> {
   try {
     const snapshot = captureSnapshot();
     if (snapshot.processes.length === 0 && snapshot.windows.length === 0) {
+      await deleteSession();
       return;
     }
     await saveSession(snapshot);

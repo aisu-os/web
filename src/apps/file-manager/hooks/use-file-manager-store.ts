@@ -3,6 +3,7 @@ import { create, useStore, type StoreApi } from 'zustand'
 import type { FileType } from '@/types'
 import type { ViewMode, SortKey, SortDirection } from '../file-manager.types'
 import { useFileSystemStore } from '@/stores/use-file-system-store'
+import { useWindowStore } from '@/stores/use-window-store'
 import { setAppSetting } from '@/services/api/settings-service'
 
 interface ContextMenuState {
@@ -54,7 +55,13 @@ interface FileManagerActions {
 
 export type FileManagerStoreApi = StoreApi<FileManagerState & FileManagerActions>
 
-export function createFileManagerStore(initialPath = '/Desktop'): FileManagerStoreApi {
+export function createFileManagerStore(initialPath = '/Desktop', windowId?: string): FileManagerStoreApi {
+  function syncPathToWindowProps(path: string): void {
+    if (windowId) {
+      useWindowStore.getState().setWindowProps(windowId, { initialPath: path })
+    }
+  }
+
   return create<FileManagerState & FileManagerActions>((set, get) => ({
     currentPath: initialPath,
     historyBack: [],
@@ -85,6 +92,7 @@ export function createFileManagerStore(initialPath = '/Desktop'): FileManagerSto
         searchQuery: '',
         columnSelections: buildColumnSelections(path),
       }))
+      syncPathToWindowProps(path)
     },
 
     goBack: () => {
@@ -99,6 +107,7 @@ export function createFileManagerStore(initialPath = '/Desktop'): FileManagerSto
         searchQuery: '',
         columnSelections: buildColumnSelections(prev),
       }))
+      syncPathToWindowProps(prev)
     },
 
     goForward: () => {
@@ -113,6 +122,7 @@ export function createFileManagerStore(initialPath = '/Desktop'): FileManagerSto
         searchQuery: '',
         columnSelections: buildColumnSelections(next),
       }))
+      syncPathToWindowProps(next)
     },
 
     selectItem: (path, additive = false) => {
