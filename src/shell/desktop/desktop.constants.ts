@@ -23,6 +23,7 @@ export const DESKTOP_CONTEXT_MENU_ITEMS: ContextMenuItem[] = [
   { label: 'New File', action: 'desktop:new-file' },
   { label: '', separator: true },
   { label: 'Get Info', action: 'desktop:get-info', shortcut: '⌘I', disabled: true },
+  { label: 'Refresh', action: 'desktop:refresh', shortcut: '⌘R' },
   { label: '', separator: true },
   { label: 'Change Desktop Background...', action: 'desktop:change-wallpaper' },
   { label: '', separator: true },

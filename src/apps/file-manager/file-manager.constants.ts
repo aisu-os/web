@@ -413,6 +413,7 @@ export const BACKGROUND_CONTEXT_MENU: ContextMenuItem[] = [
   { label: "New File", action: "new-file" },
   { label: "", separator: true },
   { label: "Get Info", shortcut: "⌘I", action: "get-info" },
+  { label: "Refresh", action: "refresh", shortcut: "⌘R" },
   { label: "", separator: true },
   { label: "Sort By", disabled: true },
   { label: "Clean Up Selection" },
@@ -428,6 +429,7 @@ export function getBackgroundContextMenu(
     { label: "New File", action: "new-file" },
     { label: "", separator: true },
     { label: "Get Info", shortcut: "⌘I", action: "get-info" },
+    { label: "Refresh", action: "refresh", shortcut: "⌘R" },
     { label: "", separator: true },
     {
       label: "Show Hidden Files",

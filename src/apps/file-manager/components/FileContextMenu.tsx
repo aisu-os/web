@@ -76,6 +76,9 @@ const FileContextMenu = () => {
             useFileSystemStore.getState().deleteNode(targetPath);
           }
           break;
+        case "refresh":
+          useFileSystemStore.getState().loadTree();
+          break;
         case "toggle-hidden-files":
           toggleShowHiddenFiles();
           break;

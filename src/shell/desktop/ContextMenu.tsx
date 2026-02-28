@@ -41,6 +41,9 @@ const ContextMenu = () => {
       case 'desktop:new-file':
         startCreating('file')
         break
+      case 'desktop:refresh':
+        useFileSystemStore.getState().loadTree()
+        break
       case 'item:open': {
         if (targetItemId) {
           const item = items.find((i) => i.id === targetItemId)
