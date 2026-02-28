@@ -4,6 +4,7 @@ export const fileManagerConfig = createAppConfig({
   id: 'file-manager',
   title: 'File Manager',
   icon: 'file-manager',
+  multipleInstances: true,
   window: {
     defaultWidth: 900,
     defaultHeight: 560,

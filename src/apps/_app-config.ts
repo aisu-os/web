@@ -4,6 +4,7 @@ export function createAppConfig(config: AppConfig): AppConfig {
   return {
     showInDock: true,
     showOnDesktop: false,
+    multipleInstances: false,
     ...config,
   }
 }

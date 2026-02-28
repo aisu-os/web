@@ -4,6 +4,7 @@ export const terminalConfig = createAppConfig({
   id: 'terminal',
   title: 'Terminal',
   icon: 'terminal',
+  multipleInstances: true,
   window: {
     defaultWidth: 720,
     defaultHeight: 480,

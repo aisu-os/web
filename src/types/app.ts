@@ -7,6 +7,7 @@ export interface AppConfig {
   window: WindowConfig
   showInDock?: boolean
   showOnDesktop?: boolean
+  multipleInstances?: boolean
   menuBar?: AppMenuBarConfig
 }
 

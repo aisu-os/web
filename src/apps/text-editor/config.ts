@@ -4,6 +4,7 @@ export const textEditorConfig = createAppConfig({
   id: 'text-editor',
   title: 'Text Editor',
   icon: 'text-editor',
+  multipleInstances: true,
   window: {
     defaultWidth: 760,
     defaultHeight: 520,

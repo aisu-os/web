@@ -4,6 +4,7 @@ export const imageViewerConfig = createAppConfig({
   id: 'image-viewer',
   title: 'Preview',
   icon: 'image-viewer',
+  multipleInstances: true,
   window: {
     defaultWidth: 820,
     defaultHeight: 600,

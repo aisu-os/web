@@ -42,6 +42,21 @@ export const useWindowStore = create<WindowStore>((set, get) => ({
     if (!entry) return ''
 
     const { config } = entry
+
+    // Single-instance: agar dastur bir nechta oynani qo'llab-quvvatlamasa,
+    // mavjud oynani focus qilish
+    if (!config.multipleInstances) {
+      const existingWindow = get().windows.find((w) => w.appId === appId)
+      if (existingWindow) {
+        get().focusWindow(existingWindow.id)
+        const process = useProcessStore.getState().getProcess(existingWindow.processId)
+        if (process?.isHidden) {
+          useProcessStore.getState().unhideProcess(existingWindow.processId)
+        }
+        return existingWindow.id
+      }
+    }
+
     const id = `${appId}-${++windowCounter}`
 
     const processId = useProcessStore.getState().spawnProcess(appId)
