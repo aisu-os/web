@@ -20,13 +20,15 @@ const PlusIcon = () => (
 const PortForwardInner = () => {
   const forwards = usePortForwardStore((s) => s.forwards)
   const isLoading = usePortForwardStore((s) => s.isLoading)
+  const loadConfig = usePortForwardStore((s) => s.loadConfig)
   const loadForwards = usePortForwardStore((s) => s.loadForwards)
   const openCreateDialog = usePortForwardStore((s) => s.openCreateDialog)
   const isCreating = usePortForwardStore((s) => s.isCreating)
 
   useEffect(() => {
+    loadConfig()
     loadForwards()
-  }, [loadForwards])
+  }, [loadConfig, loadForwards])
 
   const hasForwards = forwards.length > 0
   const isAtLimit = forwards.length >= MAX_FORWARDS

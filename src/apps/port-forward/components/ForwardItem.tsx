@@ -91,7 +91,7 @@ const ForwardItem = ({ forward }: ForwardItemProps) => {
         {/* Info */}
         <div style={{ flex: 1, minWidth: 0 }}>
           <span style={{ fontSize: 12, fontWeight: 500, color: 'rgba(255,255,255,0.8)', display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-            {forward.subdomain}.t.aisu.run
+            {forward.url.replace(/^https?:\/\//, '')}
           </span>
           <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)' }}>
             Port {forward.containerPort} &middot; {formatRelativeTime(forward.createdAt)}

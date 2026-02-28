@@ -41,6 +41,8 @@ function mapForward(api: ApiPortForward): PortForward {
 
 interface PortForwardState {
   forwards: PortForward[]
+  domain: string
+  scheme: string
   isLoading: boolean
   isCreating: boolean
   isSubmitting: boolean
@@ -51,6 +53,7 @@ interface PortForwardState {
 }
 
 interface PortForwardActions {
+  loadConfig: () => Promise<void>
   loadForwards: () => Promise<void>
   openCreateDialog: () => void
   closeCreateDialog: () => void
@@ -70,6 +73,8 @@ type PortForwardStoreApi = StoreApi<PortForwardStore>
 export function createPortForwardStore(): PortForwardStoreApi {
   return create<PortForwardStore>((set, get) => ({
     forwards: [],
+    domain: 't.localhost',
+    scheme: 'http',
     isLoading: false,
     isCreating: false,
     isSubmitting: false,
@@ -77,6 +82,15 @@ export function createPortForwardStore(): PortForwardStoreApi {
     formPort: '',
     formSubdomain: '',
     formError: null,
+
+    loadConfig: async () => {
+      try {
+        const config = await apiGet<{ domain: string; scheme: string }>('/port-forwards/config')
+        set({ domain: config.domain, scheme: config.scheme })
+      } catch {
+        // default qiymatlarda qolamiz
+      }
+    },
 
     loadForwards: async () => {
       set({ isLoading: true })

@@ -8,6 +8,8 @@ const CreateForwardDialog = () => {
   const formPort = usePortForwardStore((s) => s.formPort)
   const formSubdomain = usePortForwardStore((s) => s.formSubdomain)
   const formError = usePortForwardStore((s) => s.formError)
+  const domain = usePortForwardStore((s) => s.domain)
+  const scheme = usePortForwardStore((s) => s.scheme)
   const closeCreateDialog = usePortForwardStore((s) => s.closeCreateDialog)
   const setFormPort = usePortForwardStore((s) => s.setFormPort)
   const setFormSubdomain = usePortForwardStore((s) => s.setFormSubdomain)
@@ -118,7 +120,7 @@ const CreateForwardDialog = () => {
               }}
             />
             <span style={{ paddingRight: 12, fontSize: 11, color: 'rgba(255,255,255,0.2)', flexShrink: 0, userSelect: 'none' }}>
-              .t.aisu.run
+              .{domain}
             </span>
           </div>
         </div>
@@ -133,7 +135,7 @@ const CreateForwardDialog = () => {
         }}>
           <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.25)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Public URL</span>
           <p style={{ fontSize: 12, color: 'rgba(56,189,248,0.7)', fontFamily: 'monospace', marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-            https://{previewSubdomain}.t.aisu.run
+            {scheme}://{previewSubdomain}.{domain}
           </p>
         </div>
 
