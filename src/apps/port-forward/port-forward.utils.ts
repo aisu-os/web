@@ -1,12 +1,3 @@
-import { SUBDOMAIN_ADJECTIVES, SUBDOMAIN_NOUNS } from './port-forward.constants'
-
-export function generateRandomSubdomain(): string {
-  const adj = SUBDOMAIN_ADJECTIVES[Math.floor(Math.random() * SUBDOMAIN_ADJECTIVES.length)]
-  const noun = SUBDOMAIN_NOUNS[Math.floor(Math.random() * SUBDOMAIN_NOUNS.length)]
-  const num = Math.floor(Math.random() * 900) + 100
-  return `${adj}-${noun}-${num}`
-}
-
 export function formatRelativeTime(date: Date): string {
   const diff = Date.now() - date.getTime()
   const seconds = Math.floor(diff / 1000)

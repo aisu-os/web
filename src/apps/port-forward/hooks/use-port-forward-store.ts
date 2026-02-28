@@ -1,11 +1,47 @@
 import { createContext, useContext } from 'react'
 import { create, useStore, type StoreApi } from 'zustand'
 import type { PortForward, SubdomainValidation } from '../port-forward.types'
-import { RESERVED_SUBDOMAINS, MAX_FORWARDS, MOCK_FORWARDS } from '../port-forward.constants'
-import { generateRandomSubdomain } from '../port-forward.utils'
+import { RESERVED_SUBDOMAINS } from '../port-forward.constants'
+import { apiGet, apiPost, apiDelete, ApiError } from '@/services/api/client'
+
+// ── API response tiplari (snake_case) ──
+
+interface ApiPortForward {
+  id: string
+  subdomain: string
+  url: string
+  container_port: number
+  protocol: 'http'
+  status: 'active' | 'port_closed'
+  created_at: string
+  request_count: number
+  last_request_at: string | null
+}
+
+interface ApiPortForwardList {
+  forwards: ApiPortForward[]
+  total: number
+}
+
+function mapForward(api: ApiPortForward): PortForward {
+  return {
+    id: api.id,
+    subdomain: api.subdomain,
+    url: api.url,
+    containerPort: api.container_port,
+    protocol: api.protocol,
+    status: api.status,
+    createdAt: new Date(api.created_at),
+    requestCount: api.request_count,
+    lastRequestAt: api.last_request_at ? new Date(api.last_request_at) : null,
+  }
+}
+
+// ── Store ──
 
 interface PortForwardState {
   forwards: PortForward[]
+  isLoading: boolean
   isCreating: boolean
   isSubmitting: boolean
   expandedForwardId: string | null
@@ -15,12 +51,13 @@ interface PortForwardState {
 }
 
 interface PortForwardActions {
+  loadForwards: () => Promise<void>
   openCreateDialog: () => void
   closeCreateDialog: () => void
   setFormPort: (value: string) => void
   setFormSubdomain: (value: string) => void
   createForward: () => Promise<void>
-  deleteForward: (id: string) => void
+  deleteForward: (id: string) => Promise<void>
   toggleExpanded: (id: string) => void
   copyUrl: (url: string) => void
   validateSubdomain: (subdomain: string) => SubdomainValidation
@@ -32,13 +69,24 @@ type PortForwardStoreApi = StoreApi<PortForwardStore>
 
 export function createPortForwardStore(): PortForwardStoreApi {
   return create<PortForwardStore>((set, get) => ({
-    forwards: MOCK_FORWARDS,
+    forwards: [],
+    isLoading: false,
     isCreating: false,
     isSubmitting: false,
     expandedForwardId: null,
     formPort: '',
     formSubdomain: '',
     formError: null,
+
+    loadForwards: async () => {
+      set({ isLoading: true })
+      try {
+        const data = await apiGet<ApiPortForwardList>('/port-forwards')
+        set({ forwards: data.forwards.map(mapForward), isLoading: false })
+      } catch {
+        set({ isLoading: false })
+      }
+    },
 
     openCreateDialog: () => set({ isCreating: true, formError: null }),
 
@@ -50,7 +98,7 @@ export function createPortForwardStore(): PortForwardStoreApi {
     setFormSubdomain: (value) => set({ formSubdomain: value, formError: null }),
 
     createForward: async () => {
-      const { formPort, formSubdomain, forwards, validatePort, validateSubdomain } = get()
+      const { formPort, formSubdomain, validatePort, validateSubdomain } = get()
 
       const portResult = validatePort(formPort)
       if (!portResult.isValid) {
@@ -66,49 +114,48 @@ export function createPortForwardStore(): PortForwardStoreApi {
         }
       }
 
-      if (forwards.length >= MAX_FORWARDS) {
-        set({ formError: `Maksimum ${MAX_FORWARDS} ta port forward ruxsat etilgan` })
-        return
-      }
-
-      const portNum = parseInt(formPort, 10)
-      if (forwards.some((f) => f.containerPort === portNum)) {
-        set({ formError: `Port ${portNum} allaqachon forwarded` })
-        return
-      }
-
       set({ isSubmitting: true })
 
-      await new Promise((r) => setTimeout(r, 800))
+      try {
+        const body: { container_port: number; subdomain?: string } = {
+          container_port: parseInt(formPort, 10),
+        }
+        if (formSubdomain) {
+          body.subdomain = formSubdomain
+        }
 
-      const subdomain = formSubdomain || generateRandomSubdomain()
-      const newForward: PortForward = {
-        id: crypto.randomUUID(),
-        subdomain,
-        url: `https://${subdomain}.t.aisu.run`,
-        containerPort: portNum,
-        protocol: 'http',
-        status: 'active',
-        createdAt: new Date(),
-        requestCount: 0,
-        lastRequestAt: null,
+        const apiForward = await apiPost<ApiPortForward>('/port-forwards', body)
+        const forward = mapForward(apiForward)
+
+        set((state) => ({
+          forwards: [forward, ...state.forwards],
+          isCreating: false,
+          isSubmitting: false,
+          formPort: '',
+          formSubdomain: '',
+          formError: null,
+        }))
+      } catch (err) {
+        const message = err instanceof ApiError ? err.detail : 'Xatolik yuz berdi'
+        set({ isSubmitting: false, formError: message })
       }
-
-      set((state) => ({
-        forwards: [...state.forwards, newForward],
-        isCreating: false,
-        isSubmitting: false,
-        formPort: '',
-        formSubdomain: '',
-        formError: null,
-      }))
     },
 
-    deleteForward: (id) =>
+    deleteForward: async (id) => {
+      // Optimistic: darhol UI dan olib tashlaymiz
+      const prev = get().forwards
       set((state) => ({
         forwards: state.forwards.filter((f) => f.id !== id),
         expandedForwardId: state.expandedForwardId === id ? null : state.expandedForwardId,
-      })),
+      }))
+
+      try {
+        await apiDelete(`/port-forwards/${id}`)
+      } catch {
+        // Xato bo'lsa, qayta tiklash
+        set({ forwards: prev })
+      }
+    },
 
     toggleExpanded: (id) =>
       set((state) => ({
@@ -125,7 +172,7 @@ export function createPortForwardStore(): PortForwardStoreApi {
       if (!/^[a-z0-9][a-z0-9-]*[a-z0-9]$/.test(subdomain)) {
         return { isValid: false, error: 'Faqat kichik harflar, raqamlar va tire' }
       }
-      if (/--/.test(subdomain)) return { isValid: false, error: 'Ikki tire ketma-ket bo\'lmasin' }
+      if (/--/.test(subdomain)) return { isValid: false, error: "Ikki tire ketma-ket bo'lmasin" }
       if (RESERVED_SUBDOMAINS.has(subdomain)) return { isValid: false, error: 'Bu subdomain band' }
       const existing = get().forwards
       if (existing.some((f) => f.subdomain === subdomain)) {
@@ -137,8 +184,8 @@ export function createPortForwardStore(): PortForwardStoreApi {
     validatePort: (port) => {
       const num = parseInt(port, 10)
       if (!port || isNaN(num)) return { isValid: false, error: 'Port raqamini kiriting' }
-      if (num < 1024) return { isValid: false, error: 'Port 1024 dan katta bo\'lishi kerak' }
-      if (num > 65535) return { isValid: false, error: 'Port 65535 dan kichik bo\'lishi kerak' }
+      if (num < 1024) return { isValid: false, error: "Port 1024 dan katta bo'lishi kerak" }
+      if (num > 65535) return { isValid: false, error: "Port 65535 dan kichik bo'lishi kerak" }
       return { isValid: true, error: null }
     },
   }))

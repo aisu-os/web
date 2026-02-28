@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useEffect, useMemo } from 'react'
 import { AnimatePresence } from 'framer-motion'
 import { cn } from '@/lib/cn'
 import {
@@ -19,8 +19,14 @@ const PlusIcon = () => (
 
 const PortForwardInner = () => {
   const forwards = usePortForwardStore((s) => s.forwards)
+  const isLoading = usePortForwardStore((s) => s.isLoading)
+  const loadForwards = usePortForwardStore((s) => s.loadForwards)
   const openCreateDialog = usePortForwardStore((s) => s.openCreateDialog)
   const isCreating = usePortForwardStore((s) => s.isCreating)
+
+  useEffect(() => {
+    loadForwards()
+  }, [loadForwards])
 
   const hasForwards = forwards.length > 0
   const isAtLimit = forwards.length >= MAX_FORWARDS
@@ -57,7 +63,11 @@ const PortForwardInner = () => {
       </div>
 
       {/* Content */}
-      {hasForwards ? (
+      {isLoading ? (
+        <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.35)' }}>Yuklanmoqda...</span>
+        </div>
+      ) : hasForwards ? (
         <div style={{ flex: 1, overflowY: 'auto', padding: '8px 12px', display: 'flex', flexDirection: 'column', gap: 6 }}>
           {forwards.map((forward) => (
             <ForwardItem key={forward.id} forward={forward} />
