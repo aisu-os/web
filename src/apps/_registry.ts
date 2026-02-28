@@ -17,6 +17,7 @@ import { settingsConfig } from './settings/config'
 import { textEditorConfig } from './text-editor/config'
 import { appMarketConfig } from './app-market/config'
 import { trashConfig } from './trash/config'
+import { portForwardConfig } from './port-forward/config'
 
 export const appRegistry: Record<string, AppRegistryEntry> = {
   'file-manager': {
@@ -56,5 +57,9 @@ export const appRegistry: Record<string, AppRegistryEntry> = {
   'trash': {
     config: trashConfig,
     component: lazy(() => import('./trash/Trash')),
+  },
+  'port-forward': {
+    config: portForwardConfig,
+    component: lazy(() => import('./port-forward/PortForward')),
   },
 }

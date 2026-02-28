@@ -204,6 +204,28 @@ export const TrashIcon = ({ size = 48, isEmpty = true }: IconProps & { isEmpty?:
   )
 }
 
+export const PortForwardIcon = ({ size = 48 }: IconProps) => {
+  const id = useId()
+  const gradId = `${id}-pf`
+  return (
+    <svg width={size} height={size} viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id={gradId} x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#38BDF8" />
+          <stop offset="100%" stopColor="#0EA5E9" />
+        </linearGradient>
+      </defs>
+      <circle cx="24" cy="24" r="16" stroke={`url(#${gradId})`} strokeWidth="2" fill={`url(#${gradId})`} fillOpacity="0.06" />
+      <ellipse cx="24" cy="24" rx="16" ry="6" stroke={`url(#${gradId})`} strokeWidth="1" opacity="0.3" />
+      <ellipse cx="24" cy="24" rx="6" ry="16" stroke={`url(#${gradId})`} strokeWidth="1" opacity="0.3" />
+      <path d="M10 24H38" stroke="#7DD3FC" strokeWidth="2" strokeLinecap="round" opacity="0.8" />
+      <path d="M33 19L38 24L33 29" stroke="#7DD3FC" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" opacity="0.8" />
+      <circle cx="14" cy="24" r="2" fill="#7DD3FC" opacity="0.5" />
+      <circle cx="34" cy="24" r="2" fill="#BAE6FD" opacity="0.6" />
+    </svg>
+  )
+}
+
 export const SettingsIcon = ({ size = 48 }: IconProps) => {
   const id = useId()
   const gradId = `${id}-settings`

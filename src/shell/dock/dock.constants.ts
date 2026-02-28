@@ -7,6 +7,7 @@ import {
   ImageViewerIcon,
   AppMarketIcon,
   NotificationDemoIcon,
+  PortForwardIcon,
   SettingsIcon,
   TrashIcon,
 } from './dock-icons'
@@ -33,6 +34,7 @@ export const DOCK_ITEMS: DockItemConfig[] = [
   { id: 'image-viewer', label: 'Image Viewer', icon: ImageViewerIcon },
   { id: 'app-market', label: 'App Market', icon: AppMarketIcon },
   { id: 'notification-demo', label: 'Notifications', icon: NotificationDemoIcon },
+  { id: 'port-forward', label: 'Port Forward', icon: PortForwardIcon },
 ]
 
 export const DOCK_SETTINGS_ITEM: DockItemConfig = {

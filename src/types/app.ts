@@ -38,3 +38,4 @@ export type SystemAppId =
   | 'image-viewer'
   | 'notification-demo'
   | 'trash'
+  | 'port-forward'
