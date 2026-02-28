@@ -111,8 +111,14 @@ export async function restoreSession(): Promise<boolean> {
 
 // ── Lifecycle ──
 
-function handleBeforeUnload(): void {
+function handleBeforeUnload(event: BeforeUnloadEvent): void {
   const snapshot = captureSnapshot();
+
+  // Ochiq jarayonlar bo'lsa — brauzer ogohlantirish dialogini ko'rsat
+  if (snapshot.processes.length > 0) {
+    event.preventDefault();
+  }
+
   if (snapshot.processes.length === 0 && snapshot.windows.length === 0) return;
 
   const token = getToken();
