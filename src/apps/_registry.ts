@@ -11,7 +11,7 @@ export interface AppRegistryEntry {
 import { fileManagerConfig } from './file-manager/config'
 import { imageViewerConfig } from './image-viewer/config'
 import { notificationDemoConfig } from './notification-demo/config'
-// import { aiChatConfig } from './ai-chat/config'
+import { aiChatConfig } from './ai-chat/config'
 import { terminalConfig } from './terminal/config'
 import { settingsConfig } from './settings/config'
 import { textEditorConfig } from './text-editor/config'
@@ -32,12 +32,10 @@ export const appRegistry: Record<string, AppRegistryEntry> = {
     config: notificationDemoConfig,
     component: lazy(() => import('./notification-demo/NotificationDemo')),
   },
-  // Ilovalar implementatsiya qilinganda qo'shiladi:
-  //
-  // 'ai-chat': {
-  //   config: aiChatConfig,
-  //   component: lazy(() => import('./ai-chat/AiChat')),
-  // },
+  'ai-chat': {
+    config: aiChatConfig,
+    component: lazy(() => import('./ai-chat/AiChat')),
+  },
   'terminal': {
     config: terminalConfig,
     component: lazy(() => import('./terminal/Terminal')),
