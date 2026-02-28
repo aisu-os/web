@@ -12,8 +12,11 @@ import type { SessionData } from "@/services/api/session-service";
 import type { ProcessState, WindowState } from "@/types";
 
 const SYNC_INTERVAL_MS = 10_000;
+const DEBOUNCE_MS = 400;
 
 let syncTimer: ReturnType<typeof setInterval> | null = null;
+let debounceTimer: ReturnType<typeof setTimeout> | null = null;
+let unsubscribeStores: (() => void) | null = null;
 let isSyncing = false;
 
 // ── Holatni olish ──
@@ -48,6 +51,16 @@ async function syncToBackend(): Promise<void> {
   } finally {
     isSyncing = false;
   }
+}
+
+function debouncedSyncToBackend(): void {
+  if (debounceTimer !== null) {
+    clearTimeout(debounceTimer);
+  }
+  debounceTimer = setTimeout(() => {
+    debounceTimer = null;
+    syncToBackend();
+  }, DEBOUNCE_MS);
 }
 
 // ── Sessiyani tiklash ──
@@ -112,6 +125,12 @@ export async function restoreSession(): Promise<boolean> {
 // ── Lifecycle ──
 
 function handleBeforeUnload(event: BeforeUnloadEvent): void {
+  // Pending debounce'ni bekor qilish — beforeunload o'zi sync qiladi
+  if (debounceTimer !== null) {
+    clearTimeout(debounceTimer);
+    debounceTimer = null;
+  }
+
   const snapshot = captureSnapshot();
 
   // Ochiq jarayonlar bo'lsa — brauzer ogohlantirish dialogini ko'rsat
@@ -148,12 +167,38 @@ export function startSessionSync(): void {
 
   syncTimer = setInterval(syncToBackend, SYNC_INTERVAL_MS);
   window.addEventListener("beforeunload", handleBeforeUnload);
+
+  // Process yoki window soni o'zgarganda darhol sync (debounce bilan)
+  const unsubProcess = useProcessStore.subscribe((state, prevState) => {
+    if (state.processes.length !== prevState.processes.length) {
+      debouncedSyncToBackend();
+    }
+  });
+
+  const unsubWindow = useWindowStore.subscribe((state, prevState) => {
+    if (state.windows.length !== prevState.windows.length) {
+      debouncedSyncToBackend();
+    }
+  });
+
+  unsubscribeStores = () => {
+    unsubProcess();
+    unsubWindow();
+  };
 }
 
 export function stopSessionSync(): void {
   if (syncTimer !== null) {
     clearInterval(syncTimer);
     syncTimer = null;
+  }
+  if (debounceTimer !== null) {
+    clearTimeout(debounceTimer);
+    debounceTimer = null;
+  }
+  if (unsubscribeStores !== null) {
+    unsubscribeStores();
+    unsubscribeStores = null;
   }
   window.removeEventListener("beforeunload", handleBeforeUnload);
 }
