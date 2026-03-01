@@ -1,4 +1,5 @@
 import { Component, type ErrorInfo, type ReactNode } from 'react'
+import { Sentry } from '@/lib/sentry'
 import { cn } from '@/lib/cn'
 
 interface ErrorBoundaryProps {
@@ -28,6 +29,14 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+    Sentry.captureException(error, {
+      contexts: {
+        react: { componentStack: errorInfo.componentStack ?? undefined },
+      },
+      tags: {
+        boundary: this.props.name ?? this.props.level ?? 'unknown',
+      },
+    })
     console.error(
       `[ErrorBoundary:${this.props.name ?? this.props.level ?? 'unknown'}]`,
       error,
