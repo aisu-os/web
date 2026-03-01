@@ -6,29 +6,29 @@ const buttons = [
   {
     label: 'Success',
     color: 'bg-emerald-500/20 hover:bg-emerald-500/30 ring-emerald-500/30 text-emerald-400',
-    action: () => notify.success('Muvaffaqiyatli bajarildi', {
-      message: 'Fayl muvaffaqiyatli saqlandi.',
+    action: () => notify.success('Completed successfully', {
+      message: 'File saved successfully.',
     }),
   },
   {
     label: 'Error',
     color: 'bg-red-500/20 hover:bg-red-500/30 ring-red-500/30 text-red-400',
-    action: () => notify.error('Xatolik yuz berdi', {
-      message: 'Serverga ulanishda muammo.',
+    action: () => notify.error('An error occurred', {
+      message: 'Problem connecting to server.',
     }),
   },
   {
     label: 'Warning',
     color: 'bg-amber-500/20 hover:bg-amber-500/30 ring-amber-500/30 text-amber-400',
-    action: () => notify.warning('Diqqat!', {
-      message: 'Disk xotirasi tugamoqda.',
+    action: () => notify.warning('Attention!', {
+      message: 'Disk space is running low.',
     }),
   },
   {
     label: 'Info',
     color: 'bg-blue-500/20 hover:bg-blue-500/30 ring-blue-500/30 text-blue-400',
-    action: () => notify.info('Yangilanish mavjud', {
-      message: 'aisu v2.1 yuklab olish uchun tayyor.',
+    action: () => notify.info('Update available', {
+      message: 'aisu v2.1 is ready to download.',
     }),
   },
 ] as const
@@ -37,19 +37,19 @@ const NotificationDemo = () => {
   const progressRef = useRef<string | null>(null)
 
   const handleWithActions = useCallback(() => {
-    notify.info('Yangi xabar keldi', {
-      message: 'Ali sizga xabar yubordi.',
+    notify.info('New message received', {
+      message: 'Ali sent you a message.',
       duration: 0,
       actions: [
-        { label: "O'qish", onClick: () => notify.success("Xabar o'qildi") },
-        { label: 'Yopish', onClick: () => {} },
+        { label: 'Read', onClick: () => notify.success('Message read') },
+        { label: 'Close', onClick: () => {} },
       ],
     })
   }, [])
 
   const handleProgress = useCallback(() => {
     if (progressRef.current) return
-    const id = notify.info('Yuklanmoqda...', {
+    const id = notify.info('Downloading...', {
       message: 'system-update.pkg',
       progress: 0,
       duration: 0,
@@ -61,7 +61,7 @@ const NotificationDemo = () => {
       if (progress >= 100) {
         progress = 100
         clearInterval(interval)
-        notify.update(id, { progress: 100, title: 'Yuklandi!', type: 'success' })
+        notify.update(id, { progress: 100, title: 'Downloaded!', type: 'success' })
         setTimeout(() => {
           notify.remove(id)
           progressRef.current = null
@@ -73,8 +73,8 @@ const NotificationDemo = () => {
   }, [])
 
   const handlePersistent = useCallback(() => {
-    notify.warning('Batareya past', {
-      message: 'Quvvat 10% qoldi. Quvvatlash moslamasini ulang.',
+    notify.warning('Battery low', {
+      message: '10% charge remaining. Connect your charger.',
       duration: 0,
     })
   }, [])
@@ -85,13 +85,13 @@ const NotificationDemo = () => {
       <div className="px-5 pt-5 pb-3">
         <h1 className="text-[15px] font-semibold text-white/90">Notification Demo</h1>
         <p className="mt-1 text-[12px] text-white/40">
-          Notification tizimini sinab ko'ring
+          Test the notification system
         </p>
       </div>
 
       <div className="flex-1 overflow-y-auto px-5 pb-5">
-        {/* Asosiy turlar */}
-        <Section title="Asosiy turlar">
+        {/* Basic types */}
+        <Section title="Basic types">
           <div className="grid grid-cols-2 gap-2">
             {buttons.map((btn) => (
               <Button
@@ -104,11 +104,11 @@ const NotificationDemo = () => {
           </div>
         </Section>
 
-        {/* Qo'shimcha */}
-        <Section title="Qo'shimcha imkoniyatlar">
+        {/* Additional features */}
+        <Section title="Additional features">
           <div className="flex flex-col gap-2">
             <Button
-              label="Action tugmali"
+              label="With actions"
               className="bg-violet-500/20 hover:bg-violet-500/30 ring-violet-500/30 text-violet-400"
               onClick={handleWithActions}
             />
@@ -118,7 +118,7 @@ const NotificationDemo = () => {
               onClick={handleProgress}
             />
             <Button
-              label="Yopilmaydigan (persistent)"
+              label="Persistent"
               className="bg-orange-500/20 hover:bg-orange-500/30 ring-orange-500/30 text-orange-400"
               onClick={handlePersistent}
             />

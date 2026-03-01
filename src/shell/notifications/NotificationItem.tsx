@@ -46,18 +46,18 @@ const NotificationItem = ({ notification }: NotificationItemProps) => {
         'flex flex-row',
       )}
     >
-      {/* Chap rang chizig'i */}
+      {/* Left accent stripe */}
       <div className={cn('w-[3px] shrink-0', accentColors[notification.type])} />
 
-      {/* Asosiy kontent */}
+      {/* Main content */}
       <div className="flex-1 min-w-0 p-3">
         <div className="flex items-start gap-2.5">
-          {/* Ikonka */}
+          {/* Icon */}
           <div className="shrink-0 mt-0.5">
             {notification.icon ?? <NotificationIcon type={notification.type} />}
           </div>
 
-          {/* Matn */}
+          {/* Text */}
           <div className="flex-1 min-w-0">
             <p className="text-[13px] font-medium text-white/90 leading-tight truncate">
               {notification.title}
@@ -68,7 +68,7 @@ const NotificationItem = ({ notification }: NotificationItemProps) => {
               </p>
             )}
 
-            {/* Action tugmalar */}
+            {/* Action buttons */}
             {notification.actions && notification.actions.length > 0 && (
               <div className="flex items-center gap-2 mt-2">
                 {notification.actions.map((action) => (
@@ -90,7 +90,7 @@ const NotificationItem = ({ notification }: NotificationItemProps) => {
             )}
           </div>
 
-          {/* Yopish tugmasi */}
+          {/* Close button */}
           <button
             onClick={handleClose}
             className={cn(

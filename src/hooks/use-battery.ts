@@ -41,7 +41,7 @@ export function useBattery(): BatteryState {
         bm.addEventListener('chargingtimechange', handleChange)
         bm.addEventListener('dischargingtimechange', handleChange)
       }).catch(() => {
-        // API mavjud lekin ishlamadi — isSupported: false saqlanadi
+        // API available but failed — isSupported stays false
       })
     }
 

@@ -32,7 +32,7 @@ function mapSessionDTO(dto: SessionDTO): SessionData {
   };
 }
 
-// ── API funksiyalari ──
+// ── API functions ──
 
 export async function fetchSession(): Promise<SessionData | null> {
   try {

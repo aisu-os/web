@@ -146,7 +146,7 @@ const BatteryIndicator = () => {
               exit={{ opacity: 0, scale: 0.95, y: -4 }}
               transition={{ duration: 0.12 }}
             >
-              {/* Sarlavha */}
+              {/* Header */}
               <div className="flex items-center justify-between mb-2.5">
                 <span className="text-[13px] font-semibold text-white/90">
                   {getStatusText()}
@@ -181,7 +181,7 @@ const BatteryIndicator = () => {
               {/* Separator */}
               <div className="h-px bg-white/10 mb-2.5" />
 
-              {/* Ma'lumotlar */}
+              {/* Details */}
               {isSupported ? (
                 <div className="space-y-2">
                   <InfoRow label="Power Source" value={getSourceText()!} />

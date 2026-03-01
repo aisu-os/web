@@ -2,7 +2,7 @@ import { BASE_URL } from "@/constants/app";
 
 const API_BASE = BASE_URL + "/api/v1";
 
-// ── Token boshqaruvi (faqat xotirada, refresh da yo'qoladi) ──
+// ── Token management (in-memory only, lost on refresh) ──
 
 let memoryToken: string | null = null;
 
@@ -18,7 +18,7 @@ export function clearToken(): void {
   memoryToken = null;
 }
 
-// ── Xato turi ──
+// ── Error type ──
 
 export class ApiError extends Error {
   status: number;
@@ -32,7 +32,7 @@ export class ApiError extends Error {
   }
 }
 
-// ── Yordamchi ──
+// ── Helper ──
 
 async function handleResponse<T>(res: Response): Promise<T> {
   if (!res.ok) {
@@ -41,7 +41,7 @@ async function handleResponse<T>(res: Response): Promise<T> {
       const body = await res.json();
       detail = body.detail ?? JSON.stringify(body);
     } catch {
-      // JSON parse qilinmasa, status matnini ishlatamiz
+      // If JSON parsing fails, use the status text
     }
     throw new ApiError(res.status, detail);
   }
