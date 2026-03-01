@@ -9,11 +9,11 @@ export const SETUP_STEPS: readonly SetupStep[] = [
 ] as const
 
 export const SETUP_STEP_TITLES: Record<SetupStep, string> = {
-  welcome: 'Xush kelibsiz',
-  account: 'Hisob yaratish',
-  password: "Parol o'rnatish",
-  avatar: 'Avatar tanlash',
-  complete: 'Tayyor!',
+  welcome: 'Welcome',
+  account: 'Create Account',
+  password: 'Set Password',
+  avatar: 'Choose Avatar',
+  complete: 'Ready!',
 } as const
 
 export const SETUP_TIMING = {

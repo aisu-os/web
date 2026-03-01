@@ -34,10 +34,10 @@ const EmptyState = () => {
         <TunnelIllustration />
       </div>
       <h2 style={{ fontSize: 14, fontWeight: 600, color: 'rgba(255,255,255,0.5)', marginBottom: 4 }}>
-        Port Forward yo'q
+        No Port Forwards
       </h2>
       <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.25)', textAlign: 'center', maxWidth: 260, marginBottom: 20, lineHeight: 1.6 }}>
-        Local portingizni public URL ga aylantiring. Dev serverlar, API lar va webhook lar uchun ideal.
+        Convert your local port to a public URL. Ideal for dev servers, APIs and webhooks.
       </p>
       <button
         onClick={openCreateDialog}
@@ -51,7 +51,7 @@ const EmptyState = () => {
         <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
           <path d="M6 1V11M1 6H11" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
         </svg>
-        Birinchi Forward yarating
+        Create First Forward
       </button>
     </div>
   )

@@ -4,8 +4,8 @@ import { appRegistry } from '@/apps/_registry'
 
 /**
  * MIME type prefix -> app ID mapping.
- * Kelajakda app market yoki default app tanlash tizimi
- * bu mapping'ni dinamik boshqarishi mumkin.
+ * In the future, an app market or default app selection system
+ * could manage this mapping dynamically.
  */
 const MIME_APP_MAP: { prefix: string; appId: string; propKey: string }[] = [
   { prefix: 'image/', appId: 'image-viewer', propKey: 'filePath' },
@@ -15,31 +15,31 @@ const MIME_APP_MAP: { prefix: string; appId: string; propKey: string }[] = [
 ]
 
 /**
- * Fayl ochish uchun global funksiya.
+ * Global function to open a file.
  *
- * Fayl turi (mimeType) ga qarab mos ilovani aniqlaydi va ochadi.
- * Agar mos ilova topilmasa yoki registry'da ro'yxatdan o'tmagan bo'lsa,
- * hech narsa qilmaydi (kelajakda "Open With" dialog ko'rsatish mumkin).
+ * Determines the appropriate app based on file type (mimeType) and opens it.
+ * Does nothing if no matching app is found or it's not registered
+ * (in the future, an "Open With" dialog could be shown).
  *
- * @param filePath - Ochiladigan faylning yo'li
- * @returns Ochilgan oyna ID'si yoki null (agar ilova topilmasa)
+ * @param filePath - Path of the file to open
+ * @returns Opened window ID or null (if no app found)
  */
 export function openFile(filePath: string): string | null {
   const node = useFileSystemStore.getState().getNode(filePath)
   if (!node) return null
 
-  // Direktoriyalarni File Manager da ochish
+  // Open directories in File Manager
   if (node.type === 'directory') {
     return useWindowStore.getState().openWindow('file-manager', { initialPath: filePath })
   }
 
-  // MIME type bo'yicha mos ilovani topish
+  // Find matching app by MIME type
   const mimeType = node.mimeType ?? ''
   const match = MIME_APP_MAP.find((entry) => mimeType.startsWith(entry.prefix))
 
   if (!match) return null
 
-  // Ilova registry'da mavjudligini tekshirish
+  // Check if app exists in registry
   if (!appRegistry[match.appId]) return null
 
   return useWindowStore.getState().openWindow(match.appId, { [match.propKey]: filePath })

@@ -20,12 +20,12 @@ const SetupComplete = ({ userName, isSubmitting, error, onComplete }: SetupCompl
     <div className="setup-complete">
       <div className="setup-complete__icon">{'\u2728'}</div>
 
-      <h2 className="setup-complete__title">Xush kelibsiz, {userName}!</h2>
+      <h2 className="setup-complete__title">Welcome, {userName}!</h2>
 
       <p className="setup-complete__subtitle">
-        Hisobingiz muvaffaqiyatli yaratildi.
+        Your account has been created successfully.
         <br />
-        Tizim qayta yuklanmoqda...
+        System is restarting...
       </p>
 
       {isSubmitting && (
@@ -45,7 +45,7 @@ const SetupComplete = ({ userName, isSubmitting, error, onComplete }: SetupCompl
               onComplete()
             }}
           >
-            Qayta urinish
+            Try Again
           </button>
         </div>
       )}

@@ -14,7 +14,7 @@ export function useDropTarget(options: UseDropTargetOptions) {
 
   const idRef = useRef(getDropTargetKey(options.target))
 
-  // Target o'zgarganda id ni yangilash
+  // Update id when target changes
   useEffect(() => {
     idRef.current = getDropTargetKey(optionsRef.current.target)
   }, [options.target.type, options.target.path, options.target.windowId])
@@ -38,7 +38,7 @@ export function useDropTarget(options: UseDropTargetOptions) {
     }
   }, [options.target.type, options.target.path, options.target.windowId])
 
-  // Bu drop target ustida kursor bormi tekshirish
+  // Check if cursor is over this drop target
   const session = useDragDropStore((s) => s.session)
   const activeDropTarget = session?.activeDropTarget
 

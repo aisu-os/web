@@ -2,7 +2,7 @@ import { useCallback } from 'react'
 import { useFileSystemStore } from '@/stores/use-file-system-store'
 
 export function useFileSystem() {
-  // nodeMap ga subscribe qilish — o'zgarganda komponent qayta render bo'ladi
+  // Subscribe to nodeMap — component re-renders when it changes
   const nodeMap = useFileSystemStore((s) => s.nodeMap)
 
   const getNode = useCallback(

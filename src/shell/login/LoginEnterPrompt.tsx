@@ -29,7 +29,7 @@ const LoginEnterPrompt = ({ onContinue }: LoginEnterPromptProps) => {
         onKeyDown={handleKeyDown}
         className="login-enter-prompt"
       >
-        Davom etish uchun bosing
+        Press to continue
       </button>
     </div>
   )

@@ -84,19 +84,19 @@ export function useSetup(): UseSetupReturn {
     const errors: Partial<Record<keyof SetupAccountData, string>> = {}
 
     if (!accountData.fullName.trim()) {
-      errors.fullName = 'Ism familiya kiritilishi shart'
+      errors.fullName = 'Full name is required'
     }
     if (!accountData.username.trim()) {
-      errors.username = 'Foydalanuvchi nomi kiritilishi shart'
+      errors.username = 'Username is required'
     } else if (accountData.username.length < 3) {
-      errors.username = "Kamida 3 ta belgi bo'lishi kerak"
+      errors.username = 'Must be at least 3 characters'
     } else if (!/^[a-zA-Z0-9_-]+$/.test(accountData.username)) {
-      errors.username = 'Faqat harflar, raqamlar, _ va - ishlatish mumkin'
+      errors.username = 'Only letters, numbers, _ and - are allowed'
     }
     if (!accountData.email.trim()) {
-      errors.email = 'Email kiritilishi shart'
+      errors.email = 'Email is required'
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(accountData.email)) {
-      errors.email = "Email formati noto'g'ri"
+      errors.email = 'Invalid email format'
     }
 
     setAccountErrors(errors)
@@ -107,12 +107,12 @@ export function useSetup(): UseSetupReturn {
     const errors: Partial<Record<keyof SetupPasswordData, string>> = {}
 
     if (!passwordData.password) {
-      errors.password = 'Parol kiritilishi shart'
+      errors.password = 'Password is required'
     } else if (passwordData.password.length < 4) {
-      errors.password = "Kamida 4 ta belgi bo'lishi kerak"
+      errors.password = 'Must be at least 4 characters'
     }
     if (passwordData.password !== passwordData.confirmPassword) {
-      errors.confirmPassword = 'Parollar mos kelmadi'
+      errors.confirmPassword = 'Passwords do not match'
     }
 
     setPasswordErrors(errors)
@@ -167,7 +167,7 @@ export function useSetup(): UseSetupReturn {
   const selectAvatar = useCallback((gradient: string | null) => {
     setSelectedAvatar(gradient)
     if (gradient) {
-      // Gradient'ga mos emoji ni topish
+      // Find matching emoji for gradient
       const preset = PRESET_AVATARS.find((a) => a.gradient === gradient)
       setSelectedAvatarEmoji(preset?.emoji ?? null)
       setUploadedAvatarFile(null)
@@ -179,7 +179,7 @@ export function useSetup(): UseSetupReturn {
 
   const uploadAvatar = useCallback((dataUrl: string, file: File | null) => {
     if (!dataUrl || !file) {
-      // O'chirish
+      // Remove
       setUploadedAvatarFile(null)
       setUploadedAvatarPreview(null)
     } else {
@@ -219,7 +219,7 @@ export function useSetup(): UseSetupReturn {
         }, SETUP_TIMING.fadeOutDuration)
       }, SETUP_TIMING.completeDisplayDuration)
     } catch {
-      setSubmitError("Xatolik yuz berdi. Qayta urinib ko'ring.")
+      setSubmitError('Something went wrong. Please try again.')
       setIsSubmitting(false)
       completedRef.current = false
     }

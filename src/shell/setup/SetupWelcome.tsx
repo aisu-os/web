@@ -6,11 +6,11 @@ const SetupWelcome = ({ onContinue }: SetupWelcomeProps) => {
   return (
     <div className="setup-welcome">
       <div className="setup-welcome__brand">
-        <h1 className="setup-welcome__title">Xush kelibsiz</h1>
+        <h1 className="setup-welcome__title">Welcome</h1>
         <p className="setup-welcome__subtitle">
-          Aisu — sizning shaxsiy AI Web OS'ingiz.
+          Aisu — your personal AI Web OS.
           <br />
-          Keling, tizimni sozlashni boshlaymiz.
+          Let's get started with the setup.
         </p>
       </div>
 
@@ -19,7 +19,7 @@ const SetupWelcome = ({ onContinue }: SetupWelcomeProps) => {
         className="setup-btn setup-btn--primary"
         onClick={onContinue}
       >
-        Boshlash
+        Get Started
       </button>
     </div>
   )

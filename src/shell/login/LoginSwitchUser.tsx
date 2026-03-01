@@ -129,7 +129,7 @@ const LoginSwitchUser = ({
         <UserIcon />
       </div>
 
-      <div className="login-switch__title">Boshqa foydalanuvchi</div>
+      <div className="login-switch__title">Switch User</div>
 
       {/* Username field */}
       <div
@@ -146,7 +146,7 @@ const LoginSwitchUser = ({
             ref={usernameRef}
             type="text"
             className="login-password__input"
-            placeholder="Foydalanuvchi nomi"
+            placeholder="Username"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
             onKeyDown={handleKeyDown}
@@ -170,7 +170,7 @@ const LoginSwitchUser = ({
           <input
             type="password"
             className="login-password__input"
-            placeholder="Parolni kiriting"
+            placeholder="Enter password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             onKeyDown={handleKeyDown}
@@ -199,11 +199,11 @@ const LoginSwitchUser = ({
       <div className="login-switch__actions">
         {showBackButton && (
           <button type="button" className="login-link" onClick={onBack}>
-            ← Orqaga
+            ← Back
           </button>
         )}
         <button type="button" className="login-link" onClick={onCreateNew}>
-          Yangi foydalanuvchi yaratish
+          Create new user
         </button>
       </div>
     </div>

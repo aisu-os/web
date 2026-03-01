@@ -63,7 +63,7 @@ const CreateForwardDialog = () => {
         }}
       >
         <h3 style={{ fontSize: 14, fontWeight: 600, color: 'rgba(255,255,255,0.9)', marginBottom: 16 }}>
-          Yangi Port Forward
+          New Port Forward
         </h3>
 
         {/* Port input */}
@@ -73,7 +73,7 @@ const CreateForwardDialog = () => {
             type="number"
             value={formPort}
             onChange={(e) => setFormPort(e.target.value)}
-            placeholder="masalan, 3000"
+            placeholder="e.g., 3000"
             min={1024}
             max={65535}
             style={inputStyle}
@@ -91,7 +91,7 @@ const CreateForwardDialog = () => {
         {/* Subdomain input */}
         <div style={{ marginBottom: 12 }}>
           <label style={{ display: 'block', fontSize: 11, color: 'rgba(255,255,255,0.4)', marginBottom: 6 }}>
-            Subdomain <span style={{ color: 'rgba(255,255,255,0.2)' }}>(ixtiyoriy)</span>
+            Subdomain <span style={{ color: 'rgba(255,255,255,0.2)' }}>(optional)</span>
           </label>
           <div
             style={{
@@ -152,7 +152,7 @@ const CreateForwardDialog = () => {
             className="rounded-lg text-white/40 hover:text-white/60 hover:bg-white/5 transition-colors"
             style={{ padding: '6px 12px', fontSize: 12 }}
           >
-            Bekor
+            Cancel
           </button>
           <button
             onClick={createForward}
@@ -165,7 +165,7 @@ const CreateForwardDialog = () => {
             )}
             style={{ padding: '6px 16px', fontSize: 12 }}
           >
-            {isSubmitting ? 'Yaratilmoqda...' : 'Yaratish'}
+            {isSubmitting ? 'Creating...' : 'Create'}
           </button>
         </div>
       </motion.div>

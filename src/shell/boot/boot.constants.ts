@@ -1,9 +1,9 @@
 export const BOOT_STATUS_MESSAGES = [
-  "Tizim yuklanmoqda",
-  "AI miyasi ulanmoqda",
-  "Avatar tayyorlanmoqda",
-  "Xotira yuklanmoqda",
-  "Deyarli tayyor",
+  "Loading system",
+  "Connecting AI brain",
+  "Preparing avatar",
+  "Loading memory",
+  "Almost ready",
 ] as const;
 
 export const BOOT_TIMING = {

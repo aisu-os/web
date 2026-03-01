@@ -38,8 +38,8 @@ const SetupAvatar = ({ selected, uploadedAvatar, onSelect, onUpload, onNext }: S
 
   return (
     <div className="setup-form">
-      <h2 className="setup-step__title">Avataringizni tanlang</h2>
-      <p className="setup-step__subtitle">Profilingiz uchun rasm tanlang</p>
+      <h2 className="setup-step__title">Choose Your Avatar</h2>
+      <p className="setup-step__subtitle">Pick an image for your profile</p>
 
       {/* Upload area */}
       {uploadedAvatar ? (
@@ -51,13 +51,13 @@ const SetupAvatar = ({ selected, uploadedAvatar, onSelect, onUpload, onNext }: S
               className="setup-upload__preview-img"
             />
             <div className="setup-upload__preview-info">
-              <span className="setup-upload__preview-label">Yuklangan rasm</span>
+              <span className="setup-upload__preview-label">Uploaded image</span>
               <button
                 type="button"
                 className="setup-upload__preview-remove"
                 onClick={() => onUpload('', null)}
               >
-                Olib tashlash
+                Remove
               </button>
             </div>
           </div>
@@ -75,7 +75,7 @@ const SetupAvatar = ({ selected, uploadedAvatar, onSelect, onUpload, onNext }: S
                 <line x1="12" y1="3" x2="12" y2="15" />
               </svg>
             </span>
-            <span className="setup-upload__text">Rasm yuklash</span>
+            <span className="setup-upload__text">Upload image</span>
           </div>
           <input
             ref={fileInputRef}
@@ -90,7 +90,7 @@ const SetupAvatar = ({ selected, uploadedAvatar, onSelect, onUpload, onNext }: S
       {/* Divider */}
       {!uploadedAvatar && (
         <div className="setup-upload__divider">
-          <span className="setup-upload__divider-text">yoki tanlang</span>
+          <span className="setup-upload__divider-text">or choose</span>
         </div>
       )}
 
@@ -129,7 +129,7 @@ const SetupAvatar = ({ selected, uploadedAvatar, onSelect, onUpload, onNext }: S
             onNext()
           }}
         >
-          O'tkazib yuborish
+          Skip
         </button>
         <button
           type="button"
@@ -137,7 +137,7 @@ const SetupAvatar = ({ selected, uploadedAvatar, onSelect, onUpload, onNext }: S
           onClick={onNext}
           disabled={!hasSelection}
         >
-          Davom etish
+          Continue
         </button>
       </div>
     </div>

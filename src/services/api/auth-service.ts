@@ -1,11 +1,11 @@
 import type { UserProfile, SetupUserData } from "@/types";
 import { apiGet, apiPost, apiPostFormData, ApiError, setToken } from "./client";
 
-// ── localStorage kalitlari ──
+// ── localStorage keys ──
 const USERNAME_KEY = "aisu_username";
 const WALLPAPER_KEY = "aisu_wallpaper";
 
-// ── API response tiplari ──
+// ── API response types ──
 
 interface LoginResponse {
   access_token: string;
@@ -35,7 +35,7 @@ interface RegisterResponse {
   wallpaper: string | null;
 }
 
-// ── Yordamchi ──
+// ── Helpers ──
 
 function mapMeToProfile(me: MeResponse): UserProfile {
   return {
@@ -49,7 +49,7 @@ function mapMeToProfile(me: MeResponse): UserProfile {
   };
 }
 
-// ── Saqlangan username bilan ishlash ──
+// ── Saved username management ──
 
 export function getSavedUsername(): string | null {
   return localStorage.getItem(USERNAME_KEY);
@@ -63,10 +63,10 @@ export function saveUsername(username: string): void {
   localStorage.setItem(USERNAME_KEY, username);
 }
 
-// ── API funksiyalari ──
+// ── API functions ──
 
 /**
- * Token bilan joriy foydalanuvchi profilini olish.
+ * Fetch current user profile with token.
  * GET /api/v1/auth/me
  */
 export async function fetchMe(): Promise<UserProfile> {
@@ -75,7 +75,7 @@ export async function fetchMe(): Promise<UserProfile> {
 }
 
 /**
- * Username bo'yicha ochiq profil ma'lumotlarini olish (avatar, display_name).
+ * Fetch public profile info by username (avatar, display_name).
  * GET /api/v1/auth/username-info?username=x
  */
 export async function fetchUserProfile(username: string): Promise<{
@@ -107,9 +107,9 @@ export async function fetchUserProfile(username: string): Promise<{
 }
 
 /**
- * Username + parol bilan login.
- * POST /api/v1/auth/login → token olish
- * GET /api/v1/auth/me → to'liq profil
+ * Login with username + password.
+ * POST /api/v1/auth/login → get token
+ * GET /api/v1/auth/me → full profile
  */
 export async function loginUser(
   username: string,
@@ -121,26 +121,26 @@ export async function loginUser(
   error?: string;
 }> {
   try {
-    // 1. Login → token olish
+    // 1. Login → get token
     const loginRes = await apiPost<LoginResponse>("/auth/login", {
       username,
       password,
     });
 
-    // 2. Token xotiraga, username localStorage'ga saqlash
+    // 2. Store token in memory, username in localStorage
     setToken(loginRes.access_token);
     saveUsername(username);
 
-    // 3. Profil olish
+    // 3. Fetch profile
     const user = await fetchMe();
 
-    // 4. Wallpaper olish (username-info ochiq endpoint)
+    // 4. Fetch wallpaper (username-info public endpoint)
     let wallpaper: string | null = null;
     try {
       const info = await fetchUserProfile(username);
       wallpaper = info?.wallpaper ?? null;
     } catch {
-      // Wallpaper ololmasa ham login muvaffaqiyatli qoladi
+      // Login stays successful even if wallpaper fetch fails
     }
 
     return { success: true, user, wallpaper };
@@ -151,7 +151,7 @@ export async function loginUser(
           success: false,
           user: null,
           wallpaper: null,
-          error: "Noto'g'ri parol",
+          error: "Incorrect password",
         };
       }
       if (err.status === 404) {
@@ -159,7 +159,7 @@ export async function loginUser(
           success: false,
           user: null,
           wallpaper: null,
-          error: "Foydalanuvchi topilmadi",
+          error: "User not found",
         };
       }
       return { success: false, user: null, wallpaper: null, error: err.detail };
@@ -168,15 +168,15 @@ export async function loginUser(
       success: false,
       user: null,
       wallpaper: null,
-      error: "Tarmoq xatosi",
+      error: "Network error",
     };
   }
 }
 
 /**
- * Yangi foydalanuvchi ro'yxatdan o'tkazish.
+ * Register a new user.
  * POST /api/v1/auth/register (multipart/form-data)
- * Success bo'lsa username saqlanadi, keyin reboot → login ekrani.
+ * On success, username is saved, then reboot → login screen.
  */
 export async function registerUser(data: SetupUserData): Promise<void> {
   const formData = new FormData();
@@ -197,7 +197,7 @@ export async function registerUser(data: SetupUserData): Promise<void> {
 }
 
 /**
- * Wallpaper'ni saqlash (hozircha localStorage'da).
+ * Save wallpaper (currently in localStorage).
  */
 export function saveWallpaper(wallpaper: string): void {
   localStorage.setItem(WALLPAPER_KEY, wallpaper);

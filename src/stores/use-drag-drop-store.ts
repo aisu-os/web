@@ -3,7 +3,7 @@ import type { DragSource, DragItem, DragSession, DropTarget, DropTargetRegistrat
 import { useFileSystemStore } from '@/stores/use-file-system-store'
 import { useDesktopStore } from '@/stores/use-desktop-store'
 
-// Drop target uchun ustuvorlik
+// Drop target priority
 const TARGET_PRIORITY: Record<DropTarget['type'], number> = {
   'folder-item': 3,
   'file-manager-content': 2,
@@ -52,8 +52,8 @@ export const useDragDropStore = create<DragDropState & DragDropActions>((set, ge
 
     const operation = altKey ? 'copy' : 'move'
 
-    // Hit-test: barcha drop targetlarni tekshirish
-    // 1-qadam: kursor qaysi targetlar ichida ekanligini aniqlash
+    // Hit-test: check all drop targets
+    // Step 1: determine which targets contain the cursor
     let bestTarget: DropTarget | null = null
     let bestPriority = 0
     let cursorInsideFmContent = false
@@ -61,12 +61,12 @@ export const useDragDropStore = create<DragDropState & DragDropActions>((set, ge
     for (const reg of dropTargets.values()) {
       const rect = reg.element.getBoundingClientRect()
       if (x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom) {
-        // Kursor FM content area ichida ekanligini belgilash
+        // Mark if cursor is inside FM content area
         if (reg.target.type === 'file-manager-content') {
           cursorInsideFmContent = true
         }
 
-        // accepts filtrni tekshirish
+        // Check accepts filter
         if (!reg.accepts(session.source, session.items)) continue
 
         const priority = TARGET_PRIORITY[reg.target.type] ?? 0
@@ -77,8 +77,8 @@ export const useDragDropStore = create<DragDropState & DragDropActions>((set, ge
       }
     }
 
-    // 2-qadam: agar kursor FM oynasi ichida va faqat desktop match bo'lgan bo'lsa — blokla
-    // (FM oynasi desktop div ichida, shuning uchun desktop ham hit bo'ladi)
+    // Step 2: if cursor is inside FM window and only desktop matched — block
+    // (FM window is inside desktop div, so desktop also gets hit)
     if (bestTarget?.type === 'desktop' && cursorInsideFmContent) {
       bestTarget = null
     }
@@ -124,12 +124,12 @@ export const useDragDropStore = create<DragDropState & DragDropActions>((set, ge
 
       // Desktop sync
       if (source.type === 'desktop' && !isCopy) {
-        // Desktop dan ko'chirildi — desktop dan olib tashlash
+        // Moved from desktop — remove from desktop
         desktop.removeItemByFsPath(item.path)
       }
 
       if (activeDropTarget.type === 'desktop') {
-        // Desktop ga tashlanmoqda — yangi desktop item yaratish
+        // Dropping onto desktop — create new desktop item
         const cursorPos = session.cursorPosition
         desktop.addItemFromFileSystem(result.newPath, { x: cursorPos.x - 40, y: cursorPos.y - 40 })
       }

@@ -19,7 +19,7 @@ let debounceTimer: ReturnType<typeof setTimeout> | null = null;
 let unsubscribeStores: (() => void) | null = null;
 let isSyncing = false;
 
-// ── Holatni olish ──
+// ── Capture state ──
 
 function captureSnapshot(): SessionData {
   const { processes } = useProcessStore.getState();
@@ -33,7 +33,7 @@ function captureSnapshot(): SessionData {
   };
 }
 
-// ── Backendga yuborish ──
+// ── Send to backend ──
 
 async function syncToBackend(): Promise<void> {
   if (isSyncing) return;
@@ -47,7 +47,7 @@ async function syncToBackend(): Promise<void> {
     }
     await saveSession(snapshot);
   } catch (err) {
-    console.warn("[session-sync] Sync xatolik:", err);
+    console.warn("[session-sync] Sync error:", err);
   } finally {
     isSyncing = false;
   }
@@ -63,7 +63,7 @@ function debouncedSyncToBackend(): void {
   }, DEBOUNCE_MS);
 }
 
-// ── Sessiyani tiklash ──
+// ── Restore session ──
 
 function filterValidSession(session: SessionData): SessionData {
   const validAppIds = new Set(Object.keys(appRegistry));
@@ -117,7 +117,7 @@ export async function restoreSession(): Promise<boolean> {
 
     return true;
   } catch (err) {
-    console.warn("[session-sync] Tiklash xatolik:", err);
+    console.warn("[session-sync] Restore error:", err);
     return false;
   }
 }
@@ -125,7 +125,7 @@ export async function restoreSession(): Promise<boolean> {
 // ── Lifecycle ──
 
 function handleBeforeUnload(event: BeforeUnloadEvent): void {
-  // Pending debounce'ni bekor qilish — beforeunload o'zi sync qiladi
+  // Cancel pending debounce — beforeunload syncs itself
   if (debounceTimer !== null) {
     clearTimeout(debounceTimer);
     debounceTimer = null;
@@ -133,7 +133,7 @@ function handleBeforeUnload(event: BeforeUnloadEvent): void {
 
   const snapshot = captureSnapshot();
 
-  // Ochiq jarayonlar bo'lsa — brauzer ogohlantirish dialogini ko'rsat
+  // If there are open processes — show browser warning dialog
   if (snapshot.processes.length > 0) {
     event.preventDefault();
   }
@@ -158,7 +158,7 @@ function handleBeforeUnload(event: BeforeUnloadEvent): void {
       keepalive: true,
     });
   } catch {
-    // Best effort — brauzer yopilayotganda xatolik bo'lishi mumkin
+    // Best effort — may fail when browser is closing
   }
 }
 
@@ -168,7 +168,7 @@ export function startSessionSync(): void {
   syncTimer = setInterval(syncToBackend, SYNC_INTERVAL_MS);
   window.addEventListener("beforeunload", handleBeforeUnload);
 
-  // Process yoki window soni o'zgarganda darhol sync (debounce bilan)
+  // Sync immediately when process or window count changes (with debounce)
   const unsubProcess = useProcessStore.subscribe((state, prevState) => {
     if (state.processes.length !== prevState.processes.length) {
       debouncedSyncToBackend();

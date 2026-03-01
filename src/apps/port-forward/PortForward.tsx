@@ -43,7 +43,7 @@ const PortForwardInner = () => {
       >
         <div>
           <h1 style={{ fontSize: 13, fontWeight: 600, color: 'rgba(255,255,255,0.9)', margin: 0 }}>Port Forward</h1>
-          <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)', margin: 0 }}>Local portlarni internetga ochish</p>
+          <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)', margin: 0 }}>Expose local ports to the internet</p>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)' }}>{forwards.length}/{MAX_FORWARDS}</span>
@@ -59,7 +59,7 @@ const PortForwardInner = () => {
             style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px', fontSize: 12 }}
           >
             <PlusIcon />
-            Yangi
+            New
           </button>
         </div>
       </div>
@@ -67,7 +67,7 @@ const PortForwardInner = () => {
       {/* Content */}
       {isLoading ? (
         <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.35)' }}>Yuklanmoqda...</span>
+          <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.35)' }}>Loading...</span>
         </div>
       ) : hasForwards ? (
         <div style={{ flex: 1, overflowY: 'auto', padding: '8px 12px', display: 'flex', flexDirection: 'column', gap: 6 }}>

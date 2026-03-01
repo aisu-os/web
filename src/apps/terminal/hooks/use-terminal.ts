@@ -41,7 +41,7 @@ export function useTerminal({ onData, onResize }: UseTerminalOptions) {
   const onDataRef = useRef(onData)
   const onResizeRef = useRef(onResize)
 
-  // Callback ref larni yangilash (re-render da hook qayta yaratilmasligi uchun)
+  // Update callback refs (to prevent hook recreation on re-render)
   onDataRef.current = onData
   onResizeRef.current = onResize
 

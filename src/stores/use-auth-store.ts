@@ -44,7 +44,7 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
     const savedUsername = getSavedUsername()
 
     if (savedUsername) {
-      // Username bor — avatar, displayName, wallpaper olish (parol so'rash uchun)
+      // Username exists — fetch avatar, displayName, wallpaper (for password prompt)
       fetchUserProfile(savedUsername)
         .then((result) => {
           if (result) {
@@ -63,7 +63,7 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
       return
     }
 
-    // Username yo'q — switch-user rejimi
+    // No username — switch-user mode
     set({ phase: 'login', user: null })
   },
 
@@ -82,7 +82,7 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
         startSessionSync()
       })
     } else {
-      set({ error: result.error ?? "Noto'g'ri parol" })
+      set({ error: result.error ?? "Incorrect password" })
     }
   },
 
@@ -98,7 +98,7 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
         startSessionSync()
       })
     } else {
-      set({ error: result.error ?? 'Xatolik yuz berdi' })
+      set({ error: result.error ?? 'Something went wrong' })
     }
   },
 

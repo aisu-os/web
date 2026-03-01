@@ -18,7 +18,7 @@ interface WindowStore {
   resizeWindow: (id: string, size: WindowSize) => void
   setWindowTitle: (id: string, title: string) => void
 
-  // App-dan ochilgan oynalar uchun qo'shimcha ma'lumot
+  // Additional data for windows opened from apps
   windowProps: Record<string, Record<string, unknown>>
   getWindowProps: (id: string) => Record<string, unknown> | undefined
   setWindowProps: (id: string, props: Record<string, unknown>) => void
@@ -43,8 +43,8 @@ export const useWindowStore = create<WindowStore>((set, get) => ({
 
     const { config } = entry
 
-    // Single-instance: agar dastur bir nechta oynani qo'llab-quvvatlamasa,
-    // mavjud oynani focus qilish
+    // Single-instance: if app doesn't support multiple windows,
+    // focus the existing window
     if (!config.multipleInstances) {
       const existingWindow = get().windows.find((w) => w.appId === appId)
       if (existingWindow) {
@@ -122,7 +122,7 @@ export const useWindowStore = create<WindowStore>((set, get) => ({
       return { windows: remaining, windowProps: newProps }
     })
 
-    // Agar bu process'ning boshqa oynasi qolmasa, process'ni ham o'chirish
+    // If no other windows remain for this process, kill the process too
     if (window) {
       const remainingWindows = get().windows.filter(
         (w) => w.processId === window.processId
@@ -150,7 +150,7 @@ export const useWindowStore = create<WindowStore>((set, get) => ({
       const updated = state.windows.map((w) =>
         w.processId === processId ? { ...w, isFocused: false } : w
       )
-      // Qolgan ko'rinadigan oynalardan eng yuqorisini focus qilish
+      // Focus the topmost remaining visible window
       const hiddenProcessIds = new Set(
         useProcessStore.getState().processes
           .filter((p) => p.isHidden || p.id === processId)
@@ -249,7 +249,7 @@ export const useWindowStore = create<WindowStore>((set, get) => ({
   },
 
   restoreWindows: (windows, windowProps, nextZIndex) => {
-    // windowCounter ni yangilash — ID collision oldini olish uchun
+    // Update windowCounter — to prevent ID collisions
     let maxCounter = 0
     for (const w of windows) {
       const parts = w.id.split('-')

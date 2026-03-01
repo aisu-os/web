@@ -23,14 +23,14 @@ const SetupAccount = ({ data, errors, onChange, onNext }: SetupAccountProps) => 
 
   return (
     <div className="setup-form">
-      <h2 className="setup-step__title">Hisobingizni yarating</h2>
+      <h2 className="setup-step__title">Create Your Account</h2>
       <p className="setup-step__subtitle">
-        Shaxsiy ma'lumotlaringizni kiriting
+        Enter your personal information
       </p>
 
       <div className="setup-form__fields">
         <div className="setup-field">
-          <label className="setup-field__label">Ism Familiya</label>
+          <label className="setup-field__label">Full Name</label>
           <input
             ref={firstInputRef}
             type="text"
@@ -38,7 +38,7 @@ const SetupAccount = ({ data, errors, onChange, onNext }: SetupAccountProps) => 
               'setup-field__input',
               errors.fullName && 'setup-field__input--error'
             )}
-            placeholder="Ism Familiya"
+            placeholder="Full Name"
             value={data.fullName}
             onChange={(e) => onChange({ fullName: e.target.value })}
             onKeyDown={handleKeyDown}
@@ -49,7 +49,7 @@ const SetupAccount = ({ data, errors, onChange, onNext }: SetupAccountProps) => 
         </div>
 
         <div className="setup-field">
-          <label className="setup-field__label">Foydalanuvchi nomi</label>
+          <label className="setup-field__label">Username</label>
           <input
             type="text"
             className={cn(
@@ -90,7 +90,7 @@ const SetupAccount = ({ data, errors, onChange, onNext }: SetupAccountProps) => 
         className="setup-btn setup-btn--primary"
         onClick={onNext}
       >
-        Davom etish
+        Continue
       </button>
     </div>
   )

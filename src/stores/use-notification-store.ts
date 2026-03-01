@@ -31,7 +31,7 @@ export const useNotificationStore = create<NotificationStore>((set, get) => ({
 
     set((state) => {
       const updated = [notification, ...state.notifications]
-      // Eski notificationlarni o'chirish (limitdan oshsa)
+      // Remove old notifications (if over limit)
       if (updated.length > MAX_NOTIFICATIONS) {
         const removed = updated.slice(MAX_NOTIFICATIONS)
         for (const r of removed) {
@@ -86,7 +86,7 @@ export const useNotificationStore = create<NotificationStore>((set, get) => ({
   },
 }))
 
-// Standalone helper — hook ishlatmasdan istalgan joydan chaqirish mumkin
+// Standalone helper — can be called from anywhere without hooks
 export const notify = {
   success: (title: string, options?: Partial<NotificationInput>) =>
     useNotificationStore.getState().add({ type: 'success', title, ...options }),

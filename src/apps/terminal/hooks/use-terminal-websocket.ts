@@ -43,29 +43,29 @@ export function useTerminalWebSocket({
   const connectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const connect = useCallback(() => {
-    // Oldingi kutilayotgan connect ni bekor qilish
+    // Cancel previous pending connect
     if (connectTimeoutRef.current) {
       clearTimeout(connectTimeoutRef.current)
       connectTimeoutRef.current = null
     }
 
-    // Agar allaqachon ulanish mavjud bo'lsa — o'tkazib yuborish
+    // If connection already exists — skip
     if (wsRef.current) return
 
     const token = getToken()
     if (!token) {
       updateStatus('error')
-      onErrorRef.current?.('Token topilmadi')
+      onErrorRef.current?.('Token not found')
       return
     }
 
-    // StrictMode double-mount himoyasi: biroz kutib ochish
-    // Birinchi mount → connect → unmount → disconnect → ikkinchi mount → connect
-    // disconnect() WS ni yopadi lekin backend asinxron — kichik kutish kerak
+    // StrictMode double-mount protection: delay before opening
+    // First mount → connect → unmount → disconnect → second mount → connect
+    // disconnect() closes WS but backend is async — small delay needed
     connectTimeoutRef.current = setTimeout(() => {
       connectTimeoutRef.current = null
 
-      // Timeout ichida yana tekshirish (disconnect chaqirilgan bo'lishi mumkin)
+      // Re-check inside timeout (disconnect may have been called)
       if (wsRef.current) return
 
       updateStatus('connecting')
@@ -99,7 +99,7 @@ export function useTerminalWebSocket({
               onErrorRef.current?.(msg.message)
             }
           } catch {
-            // JSON bo'lmasa e'tiborsiz qoldirish
+            // Ignore non-JSON messages
           }
         }
       }
@@ -114,7 +114,7 @@ export function useTerminalWebSocket({
       ws.onerror = () => {
         if (wsRef.current === ws) {
           updateStatus('error')
-          onErrorRef.current?.('WebSocket xatolik')
+          onErrorRef.current?.('WebSocket error')
         }
       }
     }, 50)
@@ -136,7 +136,7 @@ export function useTerminalWebSocket({
   }, [])
 
   const disconnect = useCallback(() => {
-    // Kutilayotgan connect timeout ni bekor qilish
+    // Cancel pending connect timeout
     if (connectTimeoutRef.current) {
       clearTimeout(connectTimeoutRef.current)
       connectTimeoutRef.current = null

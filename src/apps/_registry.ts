@@ -7,7 +7,7 @@ export interface AppRegistryEntry {
   component: React.LazyExoticComponent<React.ComponentType<any>>
 }
 
-// Ilovalar config'lari qo'shilganda shu yerga import qilinadi
+// App configs are imported here when added
 import { fileManagerConfig } from './file-manager/config'
 import { imageViewerConfig } from './image-viewer/config'
 import { notificationDemoConfig } from './notification-demo/config'

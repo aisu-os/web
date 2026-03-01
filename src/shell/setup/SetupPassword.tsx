@@ -24,14 +24,14 @@ const SetupPassword = ({ data, errors, onChange, onNext }: SetupPasswordProps) =
 
   return (
     <div className="setup-form">
-      <h2 className="setup-step__title">Parol o'rnating</h2>
+      <h2 className="setup-step__title">Set Password</h2>
       <p className="setup-step__subtitle">
-        Tizimga kirish uchun parol yarating
+        Create a password to sign in to the system
       </p>
 
       <div className="setup-form__fields">
         <div className="setup-field">
-          <label className="setup-field__label">Parol</label>
+          <label className="setup-field__label">Password</label>
           <div className="setup-field__password-wrapper">
             <input
               ref={inputRef}
@@ -40,7 +40,7 @@ const SetupPassword = ({ data, errors, onChange, onNext }: SetupPasswordProps) =
                 'setup-field__input',
                 errors.password && 'setup-field__input--error'
               )}
-              placeholder="Parolni kiriting"
+              placeholder="Enter password"
               value={data.password}
               onChange={(e) => onChange({ password: e.target.value })}
               onKeyDown={handleKeyDown}
@@ -71,14 +71,14 @@ const SetupPassword = ({ data, errors, onChange, onNext }: SetupPasswordProps) =
         </div>
 
         <div className="setup-field">
-          <label className="setup-field__label">Parolni tasdiqlang</label>
+          <label className="setup-field__label">Confirm Password</label>
           <input
             type={showPassword ? 'text' : 'password'}
             className={cn(
               'setup-field__input',
               errors.confirmPassword && 'setup-field__input--error'
             )}
-            placeholder="Parolni qayta kiriting"
+            placeholder="Re-enter password"
             value={data.confirmPassword}
             onChange={(e) => onChange({ confirmPassword: e.target.value })}
             onKeyDown={handleKeyDown}
@@ -94,7 +94,7 @@ const SetupPassword = ({ data, errors, onChange, onNext }: SetupPasswordProps) =
         className="setup-btn setup-btn--primary"
         onClick={onNext}
       >
-        Davom etish
+        Continue
       </button>
     </div>
   )

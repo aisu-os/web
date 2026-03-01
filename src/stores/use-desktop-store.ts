@@ -54,7 +54,7 @@ function schedulePositionSync(items: DesktopItem[]) {
       y: Math.round(item.position.y),
     }))
     updateDesktopPositions(positions).catch(() => {
-      // Silent failure — pozitsiya UI'da to'g'ri, keyingi reload'da eski bo'lishi mumkin
+      // Silent failure — position is correct in UI, may be stale after next reload
     })
   }, POSITION_SYNC_DELAY)
 }
@@ -99,9 +99,9 @@ export const useDesktopStore = create<DesktopStore>((set, get) => ({
     const children = fs.getChildren('/Desktop')
     const { items: existingItems, editingItemId } = get()
 
-    // Bo'sh desktop — serverda hech narsa yo'q
+    // Empty desktop — nothing on server
     if (children.length === 0) {
-      // Editing rejimidagi itemni saqlash
+      // Preserve item in editing mode
       if (editingItemId) {
         const editingItem = existingItems.find((i) => i.id === editingItemId)
         set({ items: editingItem ? [editingItem] : [] })
@@ -111,17 +111,17 @@ export const useDesktopStore = create<DesktopStore>((set, get) => ({
       return
     }
 
-    // Mavjud itemlarni fsPath bo'yicha map qilish (pozitsiyani saqlash uchun)
+    // Map existing items by fsPath (to preserve positions)
     const existingByFsPath = new Map(existingItems.map((i) => [i.fsPath, i]))
 
-    // Merge strategiyasi: server children asosida yangi ro'yxat
+    // Merge strategy: new list based on server children
     const mergedItems: DesktopItem[] = []
     const nodesWithoutPos: typeof children = []
 
     for (const node of children) {
       const existing = existingByFsPath.get(node.path)
       if (existing) {
-        // Mavjud item — pozitsiyasini saqlash, nom/type yangilash
+        // Existing item — preserve position, update name/type
         mergedItems.push({
           ...existing,
           id: `desktop:${node.path}`,
@@ -130,7 +130,7 @@ export const useDesktopStore = create<DesktopStore>((set, get) => ({
           icon: getIconForType(node.type),
         })
       } else if (node.desktopX != null && node.desktopY != null) {
-        // Yangi item serverdan pozitsiya bilan
+        // New item from server with position
         mergedItems.push({
           id: `desktop:${node.path}`,
           name: node.name,
@@ -144,7 +144,7 @@ export const useDesktopStore = create<DesktopStore>((set, get) => ({
       }
     }
 
-    // Pozitsiyasi yo'q yangi elementlarga bo'sh joy topish
+    // Find free positions for new elements without positions
     for (const node of nodesWithoutPos) {
       const pos = findFreePosition(mergedItems)
       mergedItems.push({
@@ -157,7 +157,7 @@ export const useDesktopStore = create<DesktopStore>((set, get) => ({
       })
     }
 
-    // Editing rejimidagi itemni saqlash (agar serverda hali ko'rinmasa)
+    // Preserve item in editing mode (if not yet visible on server)
     if (editingItemId) {
       const editingItem = existingItems.find((i) => i.id === editingItemId)
       if (editingItem && !mergedItems.some((i) => i.fsPath === editingItem.fsPath)) {
@@ -167,7 +167,7 @@ export const useDesktopStore = create<DesktopStore>((set, get) => ({
 
     set({ items: mergedItems })
 
-    // Pozitsiyasi yo'q elementlar uchun backend'ga saqlash
+    // Save positions to backend for elements without positions
     if (nodesWithoutPos.length > 0) {
       schedulePositionSync(mergedItems)
     }
@@ -252,7 +252,7 @@ export const useDesktopStore = create<DesktopStore>((set, get) => ({
       fsPath,
     }
 
-    // File system'da ham yaratish
+    // Also create in file system
     const fs = useFileSystemStore.getState()
     fs.createNode('/Desktop', uniqueName, type)
 
@@ -289,7 +289,7 @@ export const useDesktopStore = create<DesktopStore>((set, get) => ({
 
     if (!trimmedName) {
       if (editingMode === 'create') {
-        // Bo'sh nom — yaratishni bekor qilish
+        // Empty name — cancel creation
         const fs = useFileSystemStore.getState()
         fs.deleteNode(item.fsPath)
         set((state) => ({
@@ -309,15 +309,15 @@ export const useDesktopStore = create<DesktopStore>((set, get) => ({
       return
     }
 
-    // Nom takrorlanmaganligini tekshirish
+    // Check for name uniqueness
     const siblings = items.filter((i) => i.id !== editingItemId)
     if (siblings.some((i) => i.name.toLowerCase() === trimmedName.toLowerCase())) {
-      // Nom takrorlangan — editingni tugatish, o'zgartirmaslik
+      // Name is duplicate — finish editing, keep unchanged
       set({ editingItemId: null, editingMode: null })
       return
     }
 
-    // File system'da ham rename
+    // Also rename in file system
     const fs = useFileSystemStore.getState()
     fs.renameNode(item.fsPath, trimmedName)
 
@@ -356,7 +356,7 @@ export const useDesktopStore = create<DesktopStore>((set, get) => ({
     if (!node) return
 
     const { items } = get()
-    // Agar allaqachon desktop da bo'lsa, qo'shmaslik
+    // If already on desktop, don't add
     if (items.some((i) => i.fsPath === fsPath)) return
 
     const newItem: DesktopItem = {

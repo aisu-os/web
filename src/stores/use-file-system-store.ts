@@ -111,7 +111,7 @@ export const useFileSystemStore = create<FileSystemState & FileSystemActions>((s
       const nodeMap = buildNodeMap(tree)
       set({ root: tree, nodeMap, isLoaded: true, isLoading: false })
     } catch (err) {
-      // 503 = Container ishlamayapti
+      // 503 = Container not running
       const is503 = err instanceof Error && 'status' in err && (err as { status: number }).status === 503
       set({
         root: emptyRoot,
@@ -120,11 +120,11 @@ export const useFileSystemStore = create<FileSystemState & FileSystemActions>((s
         isLoading: false,
         containerNotRunning: is503,
         syncError: is503
-          ? 'Container ishlamayapti. Terminal orqali tizimni ishga tushiring.'
-          : 'Fayl tizimini yuklashda xatolik yuz berdi',
+          ? 'Container is not running. Start the system via Terminal.'
+          : 'Failed to load file system',
       })
     }
-    // Desktop itemlarni file system dan yuklash
+    // Load desktop items from file system
     const { useDesktopStore } = await import('@/stores/use-desktop-store')
     useDesktopStore.getState().loadDesktopItems()
   },
@@ -208,7 +208,7 @@ export const useFileSystemStore = create<FileSystemState & FileSystemActions>((s
     const newNodeMap = buildNodeMap(newRoot)
     set({ root: newRoot, nodeMap: newNodeMap })
 
-    // Background API sync — muvaffaqiyatdan keyin tree yangilash
+    // Background API sync — refresh tree after success
     fsApi.createNode(parentPath, name, type).then(() => {
       get().refreshTree()
     }).catch(() => {
@@ -229,10 +229,10 @@ export const useFileSystemStore = create<FileSystemState & FileSystemActions>((s
     const parent = get().nodeMap.get(parentPath)
     if (!parent) return null
 
-    // Agar nom o'zgarmagan bo'lsa
+    // If name hasn't changed
     if (node.name === newName) return node
 
-    // Nom unikal ekanligini tekshirish
+    // Check name uniqueness
     const siblings = parent.children?.filter((c) => c.path !== path) ?? []
     if (siblings.some((c) => c.name.toLowerCase() === newName.toLowerCase())) return null
 
@@ -290,7 +290,7 @@ export const useFileSystemStore = create<FileSystemState & FileSystemActions>((s
   },
 
   permanentDelete: (path) => {
-    // trashItems dan optimistik olib tashlash
+    // Optimistic removal from trashItems
     set({ trashItems: get().trashItems.filter((item) => item.path !== path) })
 
     fsApi.deleteNode(path, true).catch(() => {
@@ -310,30 +310,30 @@ export const useFileSystemStore = create<FileSystemState & FileSystemActions>((s
     const destParent = get().nodeMap.get(destParentPath)
     if (!destParent || destParent.type !== 'directory') return null
 
-    // O'ziga yoki o'z bolasiga ko'chirish mumkin emas
+    // Cannot move to itself or its own child
     if (destParentPath === sourcePath || destParentPath.startsWith(sourcePath + '/')) return null
 
-    // Bir xil joyga ko'chirish — no-op
+    // Moving to the same location — no-op
     const sourceParentPath = get().getParentPath(sourcePath)
     if (sourceParentPath === destParentPath) return null
 
-    // Nom takrorlanishini tekshirish
+    // Check for name conflicts
     const finalName = get().generateUniqueName(destParentPath, node.name)
     const newPath = destParentPath === '/' ? `/${finalName}` : `${destParentPath}/${finalName}`
     const now = new Date()
 
-    // 1. Eski joydan olib tashlash
+    // 1. Remove from old location
     let newRoot = updateTree(root, sourceParentPath, (parentNode) => ({
       ...parentNode,
       children: parentNode.children?.filter((child) => child.path !== sourcePath),
       updatedAt: now,
     }))
 
-    // 2. Yo'llarni yangilash
+    // 2. Update paths
     const movedNode = updateDescendantPaths(node, sourcePath, newPath)
     const finalNode = { ...movedNode, name: finalName, updatedAt: now }
 
-    // 3. Yangi joyga qo'shish
+    // 3. Add to new location
     newRoot = updateTree(newRoot, destParentPath, (parentNode) => ({
       ...parentNode,
       children: [...(parentNode.children ?? []), finalNode],
@@ -367,12 +367,12 @@ export const useFileSystemStore = create<FileSystemState & FileSystemActions>((s
     const newPath = destParentPath === '/' ? `/${finalName}` : `${destParentPath}/${finalName}`
     const now = new Date()
 
-    // Deep copy bilan yangi node yaratish
+    // Create new node with deep copy
     const copiedNode: FileNode = JSON.parse(JSON.stringify(node))
     const movedNode = updateDescendantPaths(copiedNode, sourcePath, newPath)
     const finalNode = { ...movedNode, name: finalName, updatedAt: now, createdAt: now }
 
-    // Yangi joyga qo'shish
+    // Add to new location
     const newRoot = updateTree(root, destParentPath, (parentNode) => ({
       ...parentNode,
       children: [...(parentNode.children ?? []), finalNode],
@@ -404,13 +404,13 @@ export const useFileSystemStore = create<FileSystemState & FileSystemActions>((s
   },
 
   restoreFromTrash: async (path) => {
-    // Optimistik: trashItems dan olib tashlash
+    // Optimistic: remove from trashItems
     const prev = get().trashItems
     set({ trashItems: prev.filter((item) => item.path !== path) })
 
     try {
       await fsApi.restoreNode(path)
-      // Tree ni yangilash
+      // Refresh tree
       await get().loadTree()
     } catch {
       set({ trashItems: prev, syncError: `Failed to restore ${path}` })

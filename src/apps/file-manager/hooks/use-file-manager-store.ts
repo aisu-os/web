@@ -270,7 +270,7 @@ export function createFileManagerStore(initialPath = '/Desktop', windowId?: stri
       if (result) {
         set({ selectedPaths: [result.path], editingPath: null, editingMode: null })
       } else {
-        // Nom takrorlangan — eski holatni saqlaymiz
+        // Name is duplicate — keep old state
         if (editingMode === 'create') {
           set({ editingPath: null, editingMode: null })
         } else {

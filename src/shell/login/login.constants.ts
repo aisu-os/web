@@ -11,8 +11,8 @@ export const LOGIN_TIMING = {
 } as const
 
 export const LOGIN_LOADING_MESSAGES = [
-  'Ish stoli tayyorlanmoqda',
-  'Ilovalar yuklanmoqda',
-  'Fayllar sinxronlanmoqda',
-  'Deyarli tayyor',
+  'Preparing desktop',
+  'Loading apps',
+  'Syncing files',
+  'Almost ready',
 ] as const

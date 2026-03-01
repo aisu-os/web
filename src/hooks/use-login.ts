@@ -48,7 +48,7 @@ export function useLogin(): UseLoginReturn {
   const [loadingStatus, setLoadingStatus] = useState<string>(LOGIN_LOADING_MESSAGES[0])
   const prevPhaseRef = useRef(phase)
 
-  // Phase o'zgarganda isVisible ni boshqarish
+  // Manage isVisible when phase changes
   useEffect(() => {
     const prevPhase = prevPhaseRef.current
     prevPhaseRef.current = phase
@@ -62,7 +62,7 @@ export function useLogin(): UseLoginReturn {
       setLoginMode(user ? 'known-user' : 'switch-user')
     }
 
-    // login → loading: progress bar boshlanadi
+    // login → loading: progress bar starts
     if (phase === 'loading' && prevPhase !== 'loading') {
       setIsVisible(true)
       setIsDesktopLoading(true)
@@ -71,7 +71,7 @@ export function useLogin(): UseLoginReturn {
       setLoginMode('known-user')
     }
 
-    // loading → authenticated o'tish
+    // loading → authenticated transition
     if (prevPhase === 'loading' && phase === 'authenticated') {
       setIsFadingOut(true)
 
@@ -84,7 +84,7 @@ export function useLogin(): UseLoginReturn {
       return () => clearTimeout(timer)
     }
 
-    // setup yoki booting ga o'tganda login ekranini yashirish
+    // Hide login screen when transitioning to setup or booting
     if (phase === 'setup' || phase === 'booting') {
       setIsVisible(false)
       setIsFadingOut(false)
@@ -94,18 +94,18 @@ export function useLogin(): UseLoginReturn {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase])
 
-  // Loading progress animatsiyasi
+  // Loading progress animation
   useEffect(() => {
     if (!isDesktopLoading || phase !== 'loading') return
 
     const duration = LOGIN_TIMING.loadingDuration
-    const interval = 50 // 50ms oraliqda yangilash
+    const interval = 50 // Update every 50ms
     const steps = duration / interval
     let step = 0
 
     const progressTimer = setInterval(() => {
       step++
-      // Easing: boshida tez, oxirida sekin
+      // Easing: fast at start, slow at end
       const linear = step / steps
       const eased = 1 - Math.pow(1 - linear, 3) // easeOutCubic
       setLoadingProgress(Math.min(eased * 100, 100))
@@ -114,7 +114,7 @@ export function useLogin(): UseLoginReturn {
         clearInterval(progressTimer)
         setLoadingProgress(100)
 
-        // Progress 100% bo'lgandan keyin kichik delay va keyin authenticated
+        // Small delay after progress reaches 100%, then authenticated
         setTimeout(() => {
           completeLoading()
         }, 400)
@@ -124,7 +124,7 @@ export function useLogin(): UseLoginReturn {
     return () => clearInterval(progressTimer)
   }, [isDesktopLoading, phase, completeLoading])
 
-  // Loading status matnini almashtirib turish
+  // Rotate loading status text
   useEffect(() => {
     if (!isDesktopLoading || phase !== 'loading') return
 
@@ -137,7 +137,7 @@ export function useLogin(): UseLoginReturn {
     return () => clearInterval(statusTimer)
   }, [isDesktopLoading, phase])
 
-  // Error 2 soniyadan keyin tozalanadi
+  // Error clears after 2 seconds
   useEffect(() => {
     if (!error) return
 

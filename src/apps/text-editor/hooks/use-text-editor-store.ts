@@ -42,7 +42,7 @@ export function createTextEditorStore(initialFilePath?: string, windowId?: strin
         language,
       })
 
-      // Oyna sarlavhasini yangilash va filePath ni windowProps ga saqlash
+      // Update window title and save filePath to windowProps
       if (windowId) {
         useWindowStore.getState().setWindowTitle(windowId, node.name)
         useWindowStore.getState().setWindowProps(windowId, { filePath })
@@ -72,7 +72,7 @@ export function createTextEditorStore(initialFilePath?: string, windowId?: strin
       const isModified = content !== savedContent
       set({ content, isModified })
 
-      // Oyna sarlavhasini yangilash
+      // Update window title
       if (windowId) {
         const title = isModified ? `${fileName} — Edited` : fileName
         useWindowStore.getState().setWindowTitle(windowId, title)
@@ -98,12 +98,12 @@ export function createTextEditorStore(initialFilePath?: string, windowId?: strin
           isSaving: false,
         })
 
-        // Oyna sarlavhasini qaytarish
+        // Restore window title
         if (windowId) {
           useWindowStore.getState().setWindowTitle(windowId, fileName)
         }
 
-        // Fayl tizimi daraxtini yangilash (hajm o'zgarishi uchun)
+        // Refresh file system tree (for size changes)
         useFileSystemStore.getState().refreshTree()
       } catch (err) {
         const message = err instanceof Error ? err.message : 'Failed to save file'

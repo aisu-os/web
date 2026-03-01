@@ -4,7 +4,7 @@ import type { PortForward, SubdomainValidation } from '../port-forward.types'
 import { RESERVED_SUBDOMAINS } from '../port-forward.constants'
 import { apiGet, apiPost, apiDelete, ApiError } from '@/services/api/client'
 
-// ── API response tiplari (snake_case) ──
+// ── API response types (snake_case) ──
 
 interface ApiPortForward {
   id: string
@@ -88,7 +88,7 @@ export function createPortForwardStore(): PortForwardStoreApi {
         const config = await apiGet<{ domain: string; scheme: string }>('/port-forwards/config')
         set({ domain: config.domain, scheme: config.scheme })
       } catch {
-        // default qiymatlarda qolamiz
+        // keep default values
       }
     },
 
@@ -150,13 +150,13 @@ export function createPortForwardStore(): PortForwardStoreApi {
           formError: null,
         }))
       } catch (err) {
-        const message = err instanceof ApiError ? err.detail : 'Xatolik yuz berdi'
+        const message = err instanceof ApiError ? err.detail : 'Something went wrong'
         set({ isSubmitting: false, formError: message })
       }
     },
 
     deleteForward: async (id) => {
-      // Optimistic: darhol UI dan olib tashlaymiz
+      // Optimistic: remove from UI immediately
       const prev = get().forwards
       set((state) => ({
         forwards: state.forwards.filter((f) => f.id !== id),
@@ -166,7 +166,7 @@ export function createPortForwardStore(): PortForwardStoreApi {
       try {
         await apiDelete(`/port-forwards/${id}`)
       } catch {
-        // Xato bo'lsa, qayta tiklash
+        // On error, restore previous state
         set({ forwards: prev })
       }
     },
@@ -181,25 +181,25 @@ export function createPortForwardStore(): PortForwardStoreApi {
     },
 
     validateSubdomain: (subdomain) => {
-      if (subdomain.length < 3) return { isValid: false, error: 'Kamida 3 ta belgi kerak' }
-      if (subdomain.length > 32) return { isValid: false, error: 'Maksimum 32 ta belgi' }
+      if (subdomain.length < 3) return { isValid: false, error: 'At least 3 characters required' }
+      if (subdomain.length > 32) return { isValid: false, error: 'Maximum 32 characters' }
       if (!/^[a-z0-9][a-z0-9-]*[a-z0-9]$/.test(subdomain)) {
-        return { isValid: false, error: 'Faqat kichik harflar, raqamlar va tire' }
+        return { isValid: false, error: 'Only lowercase letters, numbers and hyphens' }
       }
-      if (/--/.test(subdomain)) return { isValid: false, error: "Ikki tire ketma-ket bo'lmasin" }
-      if (RESERVED_SUBDOMAINS.has(subdomain)) return { isValid: false, error: 'Bu subdomain band' }
+      if (/--/.test(subdomain)) return { isValid: false, error: 'No consecutive hyphens allowed' }
+      if (RESERVED_SUBDOMAINS.has(subdomain)) return { isValid: false, error: 'This subdomain is reserved' }
       const existing = get().forwards
       if (existing.some((f) => f.subdomain === subdomain)) {
-        return { isValid: false, error: 'Bu subdomain allaqachon ishlatilmoqda' }
+        return { isValid: false, error: 'This subdomain is already in use' }
       }
       return { isValid: true, error: null }
     },
 
     validatePort: (port) => {
       const num = parseInt(port, 10)
-      if (!port || isNaN(num)) return { isValid: false, error: 'Port raqamini kiriting' }
-      if (num < 1024) return { isValid: false, error: "Port 1024 dan katta bo'lishi kerak" }
-      if (num > 65535) return { isValid: false, error: "Port 65535 dan kichik bo'lishi kerak" }
+      if (!port || isNaN(num)) return { isValid: false, error: 'Enter a port number' }
+      if (num < 1024) return { isValid: false, error: 'Port must be greater than 1024' }
+      if (num > 65535) return { isValid: false, error: 'Port must be less than 65535' }
       return { isValid: true, error: null }
     },
   }))

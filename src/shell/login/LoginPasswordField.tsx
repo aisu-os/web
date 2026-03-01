@@ -49,7 +49,7 @@ const LoginPasswordField = ({
   const [isEntering, setIsEntering] = useState(true)
   const inputRef = useRef<HTMLInputElement>(null)
 
-  // Kirish animatsiyasi tugagandan keyin classni olib tashlash
+  // Remove class after enter animation ends
   useEffect(() => {
     const timer = setTimeout(() => {
       setIsEntering(false)
@@ -57,7 +57,7 @@ const LoginPasswordField = ({
     return () => clearTimeout(timer)
   }, [])
 
-  // Avtofokus
+  // Autofocus
   useEffect(() => {
     const timer = setTimeout(() => {
       inputRef.current?.focus()
@@ -65,7 +65,7 @@ const LoginPasswordField = ({
     return () => clearTimeout(timer)
   }, [])
 
-  // Error bo'lganda shake animatsiya
+  // Shake animation on error
   useEffect(() => {
     if (!error) return
 
@@ -108,7 +108,7 @@ const LoginPasswordField = ({
           ref={inputRef}
           type="password"
           className="login-password__input"
-          placeholder="Parolni kiriting"
+          placeholder="Enter password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           onKeyDown={handleKeyDown}

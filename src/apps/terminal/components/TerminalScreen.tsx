@@ -8,11 +8,11 @@ import type { TerminalStatus } from '../types'
 
 const STATUS_MESSAGES: Record<TerminalStatus, string | null> = {
   idle: null,
-  connecting: 'Ulanmoqda...',
-  'starting-container': 'Container ishga tushmoqda...',
+  connecting: 'Connecting...',
+  'starting-container': 'Starting container...',
   connected: null,
-  disconnected: 'Uzildi',
-  error: 'Xatolik yuz berdi',
+  disconnected: 'Disconnected',
+  error: 'An error occurred',
 }
 
 interface TerminalScreenProps {
@@ -24,7 +24,7 @@ export default function TerminalScreen({ windowId }: TerminalScreenProps) {
   const resizeObserverRef = useRef<ResizeObserver | null>(null)
   const errorRef = useRef<string | null>(null)
 
-  // windowProps dan saqlangan sessionId ni olish
+  // Get saved sessionId from windowProps
   const savedSessionId = windowId
     ? (useWindowStore.getState().getWindowProps(windowId)?.sessionId as string | undefined)
     : undefined
@@ -35,12 +35,12 @@ export default function TerminalScreen({ windowId }: TerminalScreenProps) {
       write(data)
     },
     onReady: (sessionId) => {
-      // sessionId ni windowProps ga saqlash — session persistence uchun
+      // Save sessionId to windowProps — for session persistence
       if (windowId) {
         useWindowStore.getState().setWindowProps(windowId, { sessionId })
       }
       fit()
-      // Status o'zgarishi overlay ni yopadi — re-render + paint dan keyin focus
+      // Status change closes overlay — focus after re-render + paint
       setTimeout(() => {
         focus()
       }, 100)
@@ -120,7 +120,7 @@ export default function TerminalScreen({ windowId }: TerminalScreenProps) {
                 }}
                 className="mt-1 rounded-md bg-[#313244] px-4 py-1.5 text-xs text-[#CDD6F4] transition-colors hover:bg-[#45475A]"
               >
-                Qayta ulanish
+                Reconnect
               </button>
             )}
           </div>

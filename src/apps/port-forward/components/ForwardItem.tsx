@@ -104,7 +104,7 @@ const ForwardItem = ({ forward }: ForwardItemProps) => {
             onClick={(e) => { e.stopPropagation(); copyUrl(forward.url) }}
             className="rounded-md text-white/30 hover:text-white/60 hover:bg-white/5 transition-colors"
             style={{ padding: 6 }}
-            title="URL nusxalash"
+            title="Copy URL"
           >
             <CopyIcon />
           </button>
@@ -112,7 +112,7 @@ const ForwardItem = ({ forward }: ForwardItemProps) => {
             onClick={(e) => { e.stopPropagation(); window.open(forward.url, '_blank') }}
             className="rounded-md text-white/30 hover:text-white/60 hover:bg-white/5 transition-colors"
             style={{ padding: 6 }}
-            title="Brauzerda ochish"
+            title="Open in browser"
           >
             <ExternalLinkIcon />
           </button>
@@ -120,7 +120,7 @@ const ForwardItem = ({ forward }: ForwardItemProps) => {
             onClick={(e) => { e.stopPropagation(); deleteForward(forward.id) }}
             className="rounded-md text-white/30 hover:text-red-400/70 hover:bg-red-500/10 transition-colors"
             style={{ padding: 6 }}
-            title="O'chirish"
+            title="Delete"
           >
             <TrashSmallIcon />
           </button>
@@ -138,11 +138,11 @@ const ForwardItem = ({ forward }: ForwardItemProps) => {
             style={{ overflow: 'hidden' }}
           >
             <div style={{ padding: '4px 12px 10px', borderTop: '1px solid rgba(255,255,255,0.05)', display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
-              <Stat label="So'rovlar" value={forward.requestCount.toLocaleString()} />
-              <Stat label="Ishlash vaqti" value={formatUptime(forward.createdAt)} />
+              <Stat label="Requests" value={forward.requestCount.toLocaleString()} />
+              <Stat label="Uptime" value={formatUptime(forward.createdAt)} />
               <Stat
-                label="Oxirgi so'rov"
-                value={forward.lastRequestAt ? formatRelativeTime(forward.lastRequestAt) : 'Hali yo\'q'}
+                label="Last request"
+                value={forward.lastRequestAt ? formatRelativeTime(forward.lastRequestAt) : 'None yet'}
               />
             </div>
             <div style={{ padding: '0 12px 10px' }}>

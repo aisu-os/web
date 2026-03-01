@@ -42,10 +42,10 @@ const LoginScreen = () => {
         <div className="login-bg__overlay" />
       </div>
 
-      {/* Soat va sana */}
+      {/* Clock and date */}
       <LoginClock />
 
-      {/* Markaziy kontent */}
+      {/* Center content */}
       <div className="login-content">
         {isDesktopLoading ? (
           <>
@@ -78,13 +78,13 @@ const LoginScreen = () => {
               className="login-link login-link--switch"
               onClick={switchToOtherUser}
             >
-              Boshqa foydalanuvchi
+              Switch User
             </button>
           </>
         )}
       </div>
 
-      {/* Pastdagi versiya matni */}
+      {/* Footer version text */}
       <div className="login-footer">{VERSION_TEXT}</div>
     </div>
   );
