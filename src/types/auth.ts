@@ -30,4 +30,5 @@ export interface SetupUserData {
   password: string
   avatarFile: File | null
   avatarEmoji: string | null
+  betaToken: string | null
 }

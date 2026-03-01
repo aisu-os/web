@@ -13,10 +13,19 @@ import '@/cursor/cursor.css'
 function App() {
   const phase = useAuthStore((s) => s.phase)
   const initializeAuth = useAuthStore((s) => s.initializeAuth)
+  const goToSetup = useAuthStore((s) => s.goToSetup)
   const bootCount = useAuthStore((s) => s.bootCount)
   const isCursorEnabled = useCursorStore((s) => s.isEnabled)
 
   useCursorHandlers()
+
+  // NOTE(beta): URL da token bo'lsa, boot tugagandan so'ng avtomatik setup'ga o'tish
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    if (params.has('token') && phase === 'login') {
+      goToSetup()
+    }
+  }, [phase, goToSetup])
 
   useEffect(() => {
     document.documentElement.classList.toggle('custom-cursor-active', isCursorEnabled)

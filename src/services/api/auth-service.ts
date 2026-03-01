@@ -185,6 +185,10 @@ export async function registerUser(data: SetupUserData): Promise<void> {
   formData.append("display_name", data.displayName);
   formData.append("password", data.password);
 
+  if (data.betaToken) {
+    formData.append("beta_token", data.betaToken);
+  }
+
   if (data.avatarFile) {
     formData.append("avatar", data.avatarFile);
   } else if (data.avatarEmoji) {

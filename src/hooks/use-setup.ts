@@ -38,6 +38,14 @@ interface UseSetupReturn {
   createdUserName: string
 }
 
+function getBetaParams(): { token: string | null; email: string | null } {
+  const params = new URLSearchParams(window.location.search)
+  return {
+    token: params.get('token'),
+    email: params.get('email'),
+  }
+}
+
 export function useSetup(): UseSetupReturn {
   const phase = useAuthStore((s) => s.phase)
   const completeSetupAction = useAuthStore((s) => s.completeSetup)
@@ -48,10 +56,12 @@ export function useSetup(): UseSetupReturn {
   const [currentStepIndex, setCurrentStepIndex] = useState(0)
   const [isTransitioning, setIsTransitioning] = useState(false)
 
+  const betaParams = getBetaParams()
+
   const [accountData, setAccountData] = useState<SetupAccountData>({
     fullName: '',
     username: '',
-    email: '',
+    email: betaParams.email ?? '',
   })
   const [passwordData, setPasswordData] = useState<SetupPasswordData>({
     password: '',
@@ -205,9 +215,15 @@ export function useSetup(): UseSetupReturn {
         password: passwordData.password,
         avatarFile: uploadedAvatarFile,
         avatarEmoji: selectedAvatarEmoji,
+        betaToken: betaParams.token,
       }
 
       await registerUser(userData)
+
+      // NOTE(beta): Registratsiya muvaffaqiyatli — URL dan token/email parametrlarini tozalash
+      if (betaParams.token) {
+        window.history.replaceState({}, '', window.location.pathname)
+      }
 
       setTimeout(() => {
         setIsFadingOut(true)
