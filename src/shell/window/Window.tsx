@@ -7,6 +7,7 @@ import { useProcessStore } from '@/stores/use-process-store'
 import { useCursorStore } from '@/stores/use-cursor-store'
 import { useDrag } from '@/hooks/use-drag'
 import { appRegistry } from '@/apps/_registry'
+import ErrorBoundary from '@/components/ErrorBoundary'
 
 interface WindowProps {
   windowState: WindowState
@@ -288,15 +289,21 @@ const Window = ({ windowState }: WindowProps) => {
 
           {/* Content */}
           <div className="flex-1 overflow-hidden bg-[#1E1E2E]">
-            <Suspense
-              fallback={
-                <div className="flex items-center justify-center h-full text-white/30 text-sm">
-                  Loading...
-                </div>
-              }
+            <ErrorBoundary
+              level="app"
+              name={config.title}
+              onClose={() => closeWindow(id)}
             >
-              <AppComponent windowId={id} {...(windowProps ?? {})} />
-            </Suspense>
+              <Suspense
+                fallback={
+                  <div className="flex items-center justify-center h-full text-white/30 text-sm">
+                    Loading...
+                  </div>
+                }
+              >
+                <AppComponent windowId={id} {...(windowProps ?? {})} />
+              </Suspense>
+            </ErrorBoundary>
           </div>
 
           {/* Resize handles */}

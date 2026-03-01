@@ -152,8 +152,8 @@ function handleBeforeUnload(event: BeforeUnloadEvent): void {
       body: JSON.stringify({
         processes: snapshot.processes,
         windows: snapshot.windows,
-        windowProps: snapshot.windowProps,
-        nextZIndex: snapshot.nextZIndex,
+        window_props: snapshot.windowProps,
+        next_z_index: snapshot.nextZIndex,
       }),
       keepalive: true,
     });

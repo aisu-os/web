@@ -47,8 +47,8 @@ export async function saveSession(data: SessionData): Promise<void> {
   await apiPut("/session", {
     processes: data.processes,
     windows: data.windows,
-    windowProps: data.windowProps,
-    nextZIndex: data.nextZIndex,
+    window_props: data.windowProps,
+    next_z_index: data.nextZIndex,
   });
 }
 

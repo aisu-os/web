@@ -18,6 +18,7 @@ import { NotificationLayer } from '@/shell/notifications'
 import { useMarqueeSelection } from '@/hooks/use-marquee-selection'
 import { useDropTarget } from '@/hooks/use-drop-target'
 import { cn } from '@/lib/cn'
+import ErrorBoundary from '@/components/ErrorBoundary'
 
 interface DesktopProps {
   isReady: boolean
@@ -84,7 +85,9 @@ const Desktop = ({ isReady }: DesktopProps) => {
       <DesktopBackground isVisible={isReady} />
 
       <div className="relative z-1 flex flex-col w-full h-full">
-        <TopBar isVisible={isReady} />
+        <ErrorBoundary level="shell" name="TopBar">
+          <TopBar isVisible={isReady} />
+        </ErrorBoundary>
 
         <div
           ref={desktopRef}
@@ -108,7 +111,9 @@ const Desktop = ({ isReady }: DesktopProps) => {
           <DragOverlay />
         </div>
 
-        <Dock isVisible={isReady} />
+        <ErrorBoundary level="shell" name="Dock">
+          <Dock isVisible={isReady} />
+        </ErrorBoundary>
       </div>
 
       <NotificationLayer />

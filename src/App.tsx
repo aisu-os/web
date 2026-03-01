@@ -7,6 +7,7 @@ import { useAuthStore } from '@/stores/use-auth-store'
 import { useCursorStore } from '@/stores/use-cursor-store'
 import { isMobile, MobileBlocker } from '@/components/MobileBlocker'
 import { CursorOverlay, useCursorHandlers } from '@/cursor'
+import ErrorBoundary from '@/components/ErrorBoundary'
 import '@/cursor/cursor.css'
 
 function App() {
@@ -27,13 +28,13 @@ function App() {
   if (isMobile) return <MobileBlocker />
 
   return (
-    <>
+    <ErrorBoundary level="global" name="App">
       {phase === 'authenticated' && <Desktop isReady />}
       <LoginScreen />
       <SetupScreen />
       <BootScreen key={bootCount} onComplete={initializeAuth} />
       <CursorOverlay />
-    </>
+    </ErrorBoundary>
   )
 }
 
